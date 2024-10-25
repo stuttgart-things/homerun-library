@@ -22,7 +22,6 @@ var (
 	redisAddress     = os.Getenv("REDIS_SERVER")
 	redisPort        = os.Getenv("REDIS_PORT")
 	redisPassword    = os.Getenv("REDIS_PASSWORD")
-	rediSearchIndex  = os.Getenv("REDISEARCH_INDEX")
 	redisJSONHandler = rejson.NewReJSONHandler()
 	redisStream      = os.Getenv("REDIS_STREAM")
 )
