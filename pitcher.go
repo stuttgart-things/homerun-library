@@ -37,9 +37,9 @@ func EnqueueMessageInRedisStreams(msg Message, redisConnection map[string]string
 	enqueue := sthingsCli.EnqueueDataInRedisStreams(redisConnection["addr"]+":"+redisConnection["port"], redisConnection["password"], streamID, streamValues)
 
 	if enqueue {
-		logger.Info("MESSAGE WAS ENQUEUED IN REDIS STREAMS", logger.Args("", streamID, streamValues))
+		logger.Info("MESSAGE WAS ENQUEUED IN REDIS STREAMS", logger.Args(streamID, streamValues))
 	} else {
-		logger.Error("MESSAGE WAS NOT ENQUEUED IN REDIS STREAMS", logger.Args("", streamID, streamValues))
+		logger.Error("MESSAGE WAS NOT ENQUEUED IN REDIS STREAMS", logger.Args(streamID, streamValues))
 	}
 
 	return objectID, streamID
