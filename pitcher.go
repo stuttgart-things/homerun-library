@@ -6,7 +6,6 @@ package homerun
 
 import (
 	"context"
-	"os"
 
 	"github.com/nitishm/go-rejson/v4"
 	"github.com/nitishm/go-rejson/v4/clients"
@@ -15,31 +14,27 @@ import (
 )
 
 var (
-	logger           = pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
-	redisAddress     = os.Getenv("REDIS_SERVER")
-	redisPort        = os.Getenv("REDIS_PORT")
-	redisPassword    = os.Getenv("REDIS_PASSWORD")
-	redisJSONHandler = rejson.NewReJSONHandler()
-	redisStream      = os.Getenv("REDIS_STREAM")
+	logger = pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
 )
 
-func EnqueueMessageInRedisStreams(msg Message, system string) (objectID, streamID string) {
-	var redisClient = sthingsCli.CreateRedisClient(redisAddress+":"+redisPort, redisPassword)
+func EnqueueMessageInRedisStreams(msg Message, redisConnection map[string]string) (objectID, streamID string) {
+	var redisJSONHandler = rejson.NewReJSONHandler()
+	var redisClient = sthingsCli.CreateRedisClient(redisConnection["addr"]+":"+redisConnection["port"], redisConnection["password"])
 	var conn clients.GoRedisClientConn = redisClient
 
 	redisJSONHandler.SetGoRedisClientWithContext(context.Background(), conn)
 
 	// SET TO REDIS JSON
-	objectID = GenerateUUID() + "-" + system
+	objectID = GenerateUUID() + "-" + msg.System
 	sthingsCli.SetRedisJSON(redisJSONHandler, msg, objectID)
 
 	// SET TO REDIS STREAMS
-	streamID = redisStream
+	streamID = redisConnection["stream"]
 	streamValues := map[string]interface{}{
 		"messageID": objectID,
 	}
 
-	enqueue := sthingsCli.EnqueueDataInRedisStreams(redisAddress+":"+redisPort, redisPassword, streamID, streamValues)
+	enqueue := sthingsCli.EnqueueDataInRedisStreams(redisConnection["addr"]+":"+redisConnection["port"], redisConnection["password"], streamID, streamValues)
 
 	if enqueue {
 		logger.Info("MESSAGE WAS ENQUEUED IN REDIS STREAMS", logger.Args("", streamID, streamValues))
