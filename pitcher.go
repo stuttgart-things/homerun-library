@@ -14,8 +14,6 @@ import (
 	sthingsCli "github.com/stuttgart-things/sthingsCli"
 )
 
-const System = "Generic"
-
 var (
 	logger           = pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
 	redisAddress     = os.Getenv("REDIS_SERVER")
@@ -25,7 +23,7 @@ var (
 	redisStream      = os.Getenv("REDIS_STREAM")
 )
 
-func EnqueueObejectInRedisStreams(msg Message, system string) (objectID, streamID string) {
+func EnqueueMessageInRedisStreams(msg Message, system string) (objectID, streamID string) {
 	var redisClient = sthingsCli.CreateRedisClient(redisAddress+":"+redisPort, redisPassword)
 	var conn clients.GoRedisClientConn = redisClient
 
