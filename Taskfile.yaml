@@ -11,6 +11,28 @@ vars:
     sh: date -Ih
 
 tasks:
+
+  # release:
+  #   desc: "Run semantic release"
+  #   cmds:
+  #     - npm install  # Install necessary dependencies
+  #     - semantic-release
+  #   env:
+  #     # Use environment variables to store tokens securely.
+  #     GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
+  #     NPM_TOKEN: "{{.NPM_TOKEN}}"
+  #   vars:
+  #     GITHUB_TOKEN:
+  #       sh: echo $GITHUB_TOKEN  # Fetch from shell environment
+  #     NPM_TOKEN:
+  #       sh: echo $NPM_TOKEN
+  #   silent: true  # Keeps tokens from being displayed in logs
+
+  setup-semantic-release:
+    desc: "Install semantic-release and required plugins"
+    cmds:
+      - npm install -g semantic-release @semantic-release/git @semantic-release/changelog @semantic-release/npm
+
   lint:
     desc: Lint Golang
     cmds:

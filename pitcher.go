@@ -8,7 +8,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/google/uuid"
 	"github.com/nitishm/go-rejson/v4"
 	"github.com/nitishm/go-rejson/v4/clients"
 	"github.com/pterm/pterm"
@@ -51,10 +50,4 @@ func EnqueueObejectInRedisStreams(msg Message, system string) (objectID, streamI
 	}
 
 	return objectID, streamID
-}
-
-func GenerateUUID() (randomID string) {
-	id := uuid.New()
-	randomID = id.String()
-	return
 }
