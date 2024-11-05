@@ -4,6 +4,14 @@ Copyright © 2024 Patrick Hermann patrick.hermann@sva.de
 
 package homerun
 
+import (
+	"encoding/json"
+	"log"
+
+	"github.com/nitishm/go-rejson/v4"
+	sthingsCli "github.com/stuttgart-things/sthingsCli"
+)
+
 type Message struct {
 	Title           string `json:"title,omitempty"`           // if empty: info
 	Message         string `json:"info,omitempty"`            // if empty: title
@@ -16,4 +24,22 @@ type Message struct {
 	AssigneeName    string `json:"assigneename,omitempty"`    // empty
 	Artifacts       string `json:"artifacts,omitempty"`       // empty
 	Url             string `json:"url,omitempty"`             // empty
+}
+
+var redisJSONHandler = rejson.NewReJSONHandler()
+
+func GetMessageJSON(redisJSONid string) (jsonMessage Message, err error) {
+
+	// GET JSON AS MESSAGE OBJECT
+	obj, exist := sthingsCli.GetRedisJSON(redisJSONHandler, redisJSONid)
+
+	if exist {
+		jsonMessage = Message{}
+		err := json.Unmarshal(obj, &jsonMessage)
+		if err != nil {
+			log.Fatalf("FAILED TO JSON UNMARSHAL")
+		}
+	}
+
+	return
 }

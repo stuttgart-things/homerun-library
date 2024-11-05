@@ -7,6 +7,9 @@ package homerun
 import (
 	"testing"
 	"time"
+
+	"github.com/nitishm/go-rejson/v4"
+	"github.com/stretchr/testify/mock"
 )
 
 // NewMessage erstellt ein neues Message-Objekt
@@ -41,4 +44,14 @@ func TestNewMessage(t *testing.T) {
 		t.Errorf("expected severity %s, got %s", severity, msg.Severity)
 	}
 
+}
+
+// Mock for the sthingsCli package to mock GetRedisJSON
+type MockRedisClient struct {
+	mock.Mock
+}
+
+func (m *MockRedisClient) GetRedisJSON(handler *rejson.Handler, key string) ([]byte, bool) {
+	args := m.Called(handler, key)
+	return args.Get(0).([]byte), args.Bool(1)
 }
