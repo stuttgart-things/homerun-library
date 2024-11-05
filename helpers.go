@@ -6,6 +6,7 @@ package homerun
 
 import (
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -33,4 +34,12 @@ func contains(slice []string, value string) bool {
 		}
 	}
 	return false
+}
+
+func EnvVarExists(varName string) bool {
+	if value, exists := os.LookupEnv(varName); !exists || value == "" {
+		return false
+	} else {
+		return true
+	}
 }

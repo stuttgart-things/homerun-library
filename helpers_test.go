@@ -5,6 +5,7 @@ Copyright © 2024 Patrick Hermann patrick.hermann@sva.de
 package homerun
 
 import (
+	"os"
 	"regexp"
 	"testing"
 )
@@ -106,4 +107,35 @@ func TestContains(t *testing.T) {
 			t.Errorf("Expected true, got %v", result)
 		}
 	})
+}
+
+// Test for EnvVarExists function
+func TestEnvVarExists(t *testing.T) {
+	// Test Case 1: Environment variable exists and has a value
+	varName := "TEST_ENV_VAR"
+	err := os.Setenv(varName, "some_value")
+	if err != nil {
+		t.Fatalf("Error setting environment variable: %v", err)
+	}
+	if !EnvVarExists(varName) {
+		t.Errorf("Expected EnvVarExists(%q) to be true, got false", varName)
+	}
+
+	// Test Case 2: Environment variable exists but is empty
+	err = os.Setenv(varName, "")
+	if err != nil {
+		t.Fatalf("Error setting environment variable: %v", err)
+	}
+	if EnvVarExists(varName) {
+		t.Errorf("Expected EnvVarExists(%q) to be false, got true", varName)
+	}
+
+	// Test Case 3: Environment variable does not exist
+	err = os.Unsetenv(varName)
+	if err != nil {
+		t.Fatalf("Error unsetting environment variable: %v", err)
+	}
+	if EnvVarExists(varName) {
+		t.Errorf("Expected EnvVarExists(%q) to be false, got true", varName)
+	}
 }
