@@ -26,9 +26,7 @@ type Message struct {
 	Url             string `json:"url,omitempty"`             // empty
 }
 
-var redisJSONHandler = rejson.NewReJSONHandler()
-
-func GetMessageJSON(redisJSONid string) (jsonMessage Message, err error) {
+func GetMessageJSON(redisJSONid string, redisJSONHandler *rejson.Handler) (jsonMessage Message, err error) {
 
 	// GET JSON AS MESSAGE OBJECT
 	obj, exist := sthingsCli.GetRedisJSON(redisJSONHandler, redisJSONid)
