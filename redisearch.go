@@ -27,7 +27,7 @@ var (
 		AddField(redisearch.NewTextFieldOptions("url", redisearch.TextFieldOptions{Sortable: true}))
 )
 
-func StoreInRediSearch(message Message, redisConnection map[string]string, redisSearchSchema *redisearch.Schema) {
+func StoreInRediSearch(message Message, redisConnection map[string]string) {
 
 	// CREATE REDISEARCH CLIENT
 	connectionPool := sthingsCli.CreateRedisConnectionPool(redisConnection["addr"]+":"+redisConnection["port"], redisConnection["password"])
