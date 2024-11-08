@@ -3,6 +3,7 @@ module github.com/stuttgart-things/homerun-library
 go 1.23.1
 
 require (
+	github.com/RediSearch/redisearch-go v1.1.1
 	github.com/google/uuid v1.6.0
 	github.com/jedib0t/go-pretty/v6 v6.5.9
 	github.com/nitishm/go-rejson/v4 v4.2.0
@@ -37,7 +38,6 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.0-alpha.3-proton // indirect
-	github.com/RediSearch/redisearch-go v1.1.1 // indirect
 	github.com/allegro/bigcache/v3 v3.1.0 // indirect
 	github.com/andygrunwald/go-jira v1.16.0 // indirect
 	github.com/atc0005/go-teams-notify/v2 v2.11.0-rc.1 // indirect

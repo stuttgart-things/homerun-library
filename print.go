@@ -1,4 +1,3 @@
-// homerun.go
 package homerun
 
 import (
