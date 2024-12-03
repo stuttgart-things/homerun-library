@@ -14,7 +14,7 @@ import (
 
 type Message struct {
 	Title           string `json:"title,omitempty"`           // if empty: info
-	Message         string `json:"message"`         // if empty: title
+	Message         string `json:"message,omitempty"`         // if empty: title
 	Severity        string `json:"severity,omitempty"`        // default: info
 	Author          string `json:"author,omitempty"`          // default: unknown
 	Timestamp       string `json:"timestamp,omitempty"`       // generate timestamp func
@@ -31,22 +31,13 @@ func GetMessageJSON(redisJSONid string, redisJSONHandler *rejson.Handler) (jsonM
 	// GET JSON AS MESSAGE OBJECT
 	obj, exist := sthingsCli.GetRedisJSON(redisJSONHandler, redisJSONid)
 
-	if !exist {
-		log.Printf("No JSON object found for ID: %s", redisJSONid)
-		return
+	if exist {
+		jsonMessage = Message{}
+		err := json.Unmarshal(obj, &jsonMessage)
+		if err != nil {
+			log.Fatalf("FAILED TO JSON UNMARSHAL")
+		}
 	}
 
-	log.Printf("Raw JSON from Redis: %s\n", string(obj))
-
-	jsonMessage = Message{}
-	err = json.Unmarshal(obj, &jsonMessage)
-	if err != nil {
-		log.Fatalf("FAILED TO JSON UNMARSHAL: %v", err)
-	}
-
-	if jsonMessage.Message == "" {
-		log.Println("Warning: Message field is empty.")
-	}
-
-	return jsonMessage, nil
+	return
 }
