@@ -31,13 +31,22 @@ func GetMessageJSON(redisJSONid string, redisJSONHandler *rejson.Handler) (jsonM
 	// GET JSON AS MESSAGE OBJECT
 	obj, exist := sthingsCli.GetRedisJSON(redisJSONHandler, redisJSONid)
 
-	if exist {
-		jsonMessage = Message{}
-		err := json.Unmarshal(obj, &jsonMessage)
-		if err != nil {
-			log.Fatalf("FAILED TO JSON UNMARSHAL")
-		}
+	if !exist {
+		log.Printf("No JSON object found for ID: %s", redisJSONid)
+		return
 	}
 
-	return
+	log.Printf("Raw JSON from Redis: %s\n", string(obj))
+
+	jsonMessage = Message{}
+	err = json.Unmarshal(obj, &jsonMessage)
+	if err != nil {
+		log.Fatalf("FAILED TO JSON UNMARSHAL: %v", err)
+	}
+
+	if jsonMessage.Message == "" {
+		log.Println("Warning: Message field is empty.")
+	}
+
+	return jsonMessage, nil
 }
