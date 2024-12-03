@@ -31,6 +31,8 @@ func GetMessageJSON(redisJSONid string, redisJSONHandler *rejson.Handler) (jsonM
 	// GET JSON AS MESSAGE OBJECT
 	obj, exist := sthingsCli.GetRedisJSON(redisJSONHandler, redisJSONid)
 
+	log.Printf("Raw JSON from Redis: %s\n", string(obj))
+
 	if !exist {
 		log.Printf("No JSON object found for ID: %s", redisJSONid)
 		return
