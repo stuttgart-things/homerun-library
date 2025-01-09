@@ -23,10 +23,3 @@ jobs:
       accept-linterrors: true
       accept-failedtests: false
     secrets: inherit  #pragma: allowlist secret
-
-  # build-image:
-  #   name: Build Image
-  #   uses: stuttgart-things/stuttgart-things/.github/workflows/call-ko-build.yaml@main
-  #   with:
-  #     environment-name: k8s
-  #     runs-on: docker

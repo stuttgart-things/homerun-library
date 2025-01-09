@@ -11,9 +11,14 @@ vars:
     sh: date -Ih
 
 tasks:
+  check:
+    desc: "Run pre-commit hooks"
+    cmds:
+      - pre-commit run -a
+
   release:
     desc: Push new version
-    deps: [lint, test]
+    deps: [check, lint, test]
     cmds:
       - task: pr
       - npx semantic-release --dry-run
