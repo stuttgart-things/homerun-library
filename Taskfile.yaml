@@ -75,7 +75,7 @@ tasks:
       - git checkout main && git pull
 
   tag:
-    desc: commit, push & tag the module
+    desc: Commit, push & tag the module
     deps: [lint, test, commit]
     cmds:
       - git pull
