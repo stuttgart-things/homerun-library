@@ -11,27 +11,14 @@ vars:
     sh: date -Ih
 
 tasks:
-
-  # release:
-  #   desc: "Run semantic release"
-  #   cmds:
-  #     - npm install  # Install necessary dependencies
-  #     - semantic-release
-  #   env:
-  #     # Use environment variables to store tokens securely.
-  #     GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
-  #     NPM_TOKEN: "{{.NPM_TOKEN}}"
-  #   vars:
-  #     GITHUB_TOKEN:
-  #       sh: echo $GITHUB_TOKEN  # Fetch from shell environment
-  #     NPM_TOKEN:
-  #       sh: echo $NPM_TOKEN
-  #   silent: true  # Keeps tokens from being displayed in logs
-
-  setup-semantic-release:
-    desc: "Install semantic-release and required plugins"
+  release:
+    desc: Push new version
+    deps: [lint, test]
     cmds:
-      - npm install -g semantic-release @semantic-release/git @semantic-release/changelog @semantic-release/npm
+      - task: pr
+      - npx semantic-release --dry-run
+      - npx semantic-release --debug --no-ci
+      - echo released version $(git describe --tags --abbrev=0)
 
   lint:
     desc: Lint Golang
@@ -84,7 +71,7 @@ tasks:
       - gh pr create -t "{{ .BRANCH }}" -b "{{ .BRANCH }} branch into main"
       - sleep 10s
       #- gh pr checks $(gh pr list | grep "^[^#;]" | awk '{print $1}') --watch
-      - gh pr merge $(gh pr list | grep "^[^#;]" | awk '{print $1}') --auto --rebase --delete-branch
+      - gh pr merge $(gh pr list | grep "^[^#;]" | grep '{{ .BRANCH }}' | awk '{print $1}') --auto --rebase --delete-branch
       - git checkout main && git pull
 
   tag:
