@@ -6,7 +6,7 @@ require (
 	github.com/RediSearch/redisearch-go v1.1.1
 	github.com/RediSearch/redisearch-go/v2 v2.1.1
 	github.com/google/uuid v1.6.0
-	github.com/jedib0t/go-pretty/v6 v6.6.1
+	github.com/jedib0t/go-pretty/v6 v6.6.5
 	github.com/nitishm/go-rejson/v4 v4.2.0
 	github.com/pterm/pterm v0.12.80
 	github.com/stretchr/testify v1.10.0
