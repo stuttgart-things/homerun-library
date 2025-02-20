@@ -1,4 +1,4 @@
-# stuttgart-thinngs/homerun-library
+# stuttgart-things/homerun-library
 
 library module for homerun microservices.
 
