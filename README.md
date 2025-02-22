@@ -7,12 +7,17 @@ library module for homerun microservices.
 <details><summary>USE SEND FUNC</summary>
 
 ```go
+//..
 insecure := true
+
 rendered := RenderBody(homeRunBodyData, messageBody)
-fmt.Println(rendered) // DEBUG OUTPUT
 
+// DEBUG MESSAGE OUTPUT - IF NEEDED
+fmt.Println(rendered)
+
+// SEND TO HOMERUN
 answer, resp := internal.SendToHomerun(destination, token, []byte(rendered), insecure)
-
+//..
 ```
 
 </details>
