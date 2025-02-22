@@ -1,3 +1,18 @@
+# [1.2.0](https://github.com/stuttgart-things/homerun-library/compare/v1.1.0...v1.2.0) (2025-02-22)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/jedib0t/go-pretty/v6 to v6.6.6 ([63ed640](https://github.com/stuttgart-things/homerun-library/commit/63ed640a564b93c9d9a5196811d346e174d65c3e))
+* **deps:** update module github.com/redisearch/redisearch-go to v2 ([3cbc10f](https://github.com/stuttgart-things/homerun-library/commit/3cbc10f045d678d25a90dcbec1fef7089ba97f1e))
+* **deps:** update module github.com/stuttgart-things/sthingscli to v0.3.0 ([3b1e6ec](https://github.com/stuttgart-things/homerun-library/commit/3b1e6ecfab496a343c281b93a838afa902d5c431))
+* fix/fix-release ([0bcd0cb](https://github.com/stuttgart-things/homerun-library/commit/0bcd0cb9739e1ab3ff9ab868832420e8ed5d95e1))
+
+
+### Features
+
+* fix/fixed-readme-desc ([fa75c83](https://github.com/stuttgart-things/homerun-library/commit/fa75c83ddc9a7d8feb29ecb9343ebdb830abd228))
+
 # [1.1.0](https://github.com/stuttgart-things/homerun-library/compare/v1.0.0...v1.1.0) (2025-02-22)
 
 
