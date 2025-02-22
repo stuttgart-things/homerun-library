@@ -10,10 +10,24 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"text/template"
 )
 
 var (
-	contentType = "application/json"
+	contentType     = "application/json"
+	HomeRunBodyData = `{
+		"Title": "{{ .Title }}",
+		"Message": "{{ .Message }}",
+		"Severity": "{{ .Severity }}",
+		"Author": "{{ .Author }}",
+		"Timestamp": "{{ .Timestamp }}",
+		"System": "{{ .System }}",
+		"Tags": "{{ .Tags }}",
+		"AssigneeAddress": "{{ .AssigneeAddress }}",
+		"AssigneeName": "{{ .AssigneeName }}",
+		"Artifacts": "{{ .Artifacts }}",
+		"Url": "{{ .Url }}"
+	}`
 )
 
 // SendToHomerun sends a message to the Homerun service with optional insecure TLS settings.
@@ -51,4 +65,23 @@ func SendToHomerun(destination, token string, renderedBody []byte, insecure bool
 	}
 
 	return answer, resp
+}
+
+func RenderBody(templateData string, object interface{}) string {
+
+	tmpl, err := template.New("template").Parse(templateData)
+	if err != nil {
+		panic(err)
+	}
+
+	var buf bytes.Buffer
+
+	err = tmpl.Execute(&buf, object)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return buf.String()
+
 }

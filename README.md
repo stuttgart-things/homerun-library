@@ -2,6 +2,21 @@
 
 library module for homerun microservices.
 
+## USAGE
+
+<details><summary>USE SEND FUNC</summary>
+
+```go
+insecure := true
+rendered := RenderBody(homeRunBodyData, messageBody)
+fmt.Println(rendered) // DEBUG OUTPUT
+
+answer, resp := internal.SendToHomerun(destination, token, []byte(rendered), insecure)
+
+```
+
+</details>
+
 ## DEV-TASKS
 
 ```bash

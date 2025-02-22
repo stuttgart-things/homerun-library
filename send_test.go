@@ -52,3 +52,34 @@ func TestSendToHomerun(t *testing.T) {
 		t.Errorf("Expected response %s, got %s", expectedResponse, string(response))
 	}
 }
+
+func TestRenderBody(t *testing.T) {
+	tests := []struct {
+		templateData string
+		object       interface{}
+		expected     string
+	}{
+		{
+			templateData: "Hello, {{.Name}}!",
+			object:       map[string]string{"Name": "Alice"},
+			expected:     "Hello, Alice!",
+		},
+		{
+			templateData: "Age: {{.Age}}",
+			object:       map[string]int{"Age": 30},
+			expected:     "Age: 30",
+		},
+		{
+			templateData: "Empty: {{.Missing}}",
+			object:       map[string]string{},
+			expected:     "Empty: <no value>", // Default Go template behavior
+		},
+	}
+
+	for _, test := range tests {
+		result := RenderBody(test.templateData, test.object)
+		if result != test.expected {
+			t.Errorf("For template '%s' and object %v, expected '%s' but got '%s'", test.templateData, test.object, test.expected, result)
+		}
+	}
+}
