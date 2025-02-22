@@ -68,7 +68,7 @@ task: Available tasks for this project:
 * test:          Test code
 ```
 
-## AUTHOR
+## AUTHORS
 
 ```bash
 Sina Schlatter, stuttgart-things 12/2024
