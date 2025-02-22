@@ -7,17 +7,49 @@ library module for homerun microservices.
 <details><summary>USE SEND FUNC</summary>
 
 ```go
-//..
-insecure := true
+package main
 
-rendered := RenderBody(homeRunBodyData, messageBody)
+import (
+	"fmt"
+	"time"
+	homerun "github.com/stuttgart-things/homerun-library"
+)
 
-// DEBUG MESSAGE OUTPUT - IF NEEDED
-fmt.Println(rendered)
+var (
+	destination = "https://homerun.homerun-dev.example.com/generic"
+	token       = ""
+	insecure    = true
+	dt          = time.Now()
+)
 
-// SEND TO HOMERUN
-answer, resp := internal.SendToHomerun(destination, token, []byte(rendered), insecure)
-//..
+func main() {
+
+	// CREATE THE MESSAGE STRUCTURE
+	messageBody := homerun.Message{
+		Title:           "Test",
+		Message:         "Test message",
+		Severity:        "INFO",
+		Author:          "elvis",
+		Timestamp:       dt.Format("01-02-2006 15:04:05"),
+		System:          "golang",
+		Tags:            "golang,tests",
+		AssigneeAddress: "",
+		AssigneeName:    "",
+		Artifacts:       "",
+		Url:             "",
+	}
+
+	// RENDER THE MESSAGE BODY
+	rendered := homerun.RenderBody(homerun.HomeRunBodyData, messageBody)
+	fmt.Println(rendered)
+
+	// SEND THE MESSAGE
+	answer, resp := homerun.SendToHomerun(destination, token, []byte(rendered), insecure)
+
+	// PRINT THE ANSWER
+	fmt.Println("ANSWER STATUS: ", resp.Status)
+	fmt.Println("ANSWER BODY: ", string(answer))
+}
 ```
 
 </details>
