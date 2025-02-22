@@ -1,6 +1,6 @@
 # stuttgart-things/homerun-library
 
-library module for homerun microservices.
+library module for shared use for homerun microservice family.
 
 ## USAGE
 
