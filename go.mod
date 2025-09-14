@@ -11,7 +11,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.6.8
 	github.com/nitishm/go-rejson/v4 v4.2.0
 	github.com/pterm/pterm v0.12.81
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/stuttgart-things/sthingsCli v0.3.0
 )
 
