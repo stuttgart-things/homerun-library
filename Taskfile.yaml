@@ -92,3 +92,10 @@ tasks:
       - go mod tidy
       - git tag -a {{ .TAG }} -m 'updated for stuttgart-things {{.DATE}} for tag version {{ .TAG }}'
       - git push origin --tags
+
+  do:
+    desc: Select a task to run
+    cmds:
+      - |
+        task=$(yq e '.tasks | keys' Taskfile.yaml | sed 's/^- //' | gum choose)
+        task ${task}

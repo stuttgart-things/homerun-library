@@ -43,3 +43,11 @@ func EnvVarExists(varName string) bool {
 		return true
 	}
 }
+
+// GetEnv returns the value of the environment variable 'key' or the provided fallback if not set.
+func GetEnv(key, fallback string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return val
+	}
+	return fallback
+}
