@@ -24,12 +24,24 @@ var (
 //  2. Adds an entry into the configured Redis Stream, linking the stream entry to the JSON object.
 //
 // Parameters:
-//   - msg: The Message struct to store.
+//   - msg: The Message struct to store. Fields include:
+//     - Title: A short title of the message
+//     - Message: The actual message content
+//     - Severity: Message severity level (e.g. info, warning, error, success)
+//     - Author: The creator of the message
+//     - Timestamp: ISO-8601 timestamp (e.g. 2025-09-14T10:00:00Z)
+//     - System: Originating system (e.g. "demo-system")
+//     - Tags: Comma-separated list of tags
+//     - AssigneeAddress: Email or address of the assignee
+//     - AssigneeName: Name of the assignee
+//     - Artifacts: Related artifacts (e.g. container image, build artifact)
+//     - Url: Related URL (e.g. link to deployment dashboard)
+//
 //   - redisConnection: A map containing Redis connection details. Expected keys:
-//   - "addr"   → Redis host/address
-//   - "port"   → Redis port
-//   - "password" → Redis password
-//   - "stream"   → Redis stream name
+//     - "addr"     → Redis host/address
+//     - "port"     → Redis port
+//     - "password" → Redis password
+//     - "stream"   → Redis stream name
 //
 // Returns:
 //   - objectID: The generated Redis JSON object ID
@@ -38,7 +50,19 @@ var (
 // Example:
 //
 //	objectID, streamID := homerun.EnqueueMessageInRedisStreams(
-//		homerun.Message{System: "demo", Content: "Hello"},
+//		homerun.Message{
+//			Title:           "Deployment Notification",
+//			Message:         "Service xyz deployed successfully",
+//			Severity:        "success",
+//			Author:          "ci-pipeline",
+//			Timestamp:       "2025-09-14T10:00:00Z",
+//			System:          "demo-system",
+//			Tags:            "deployment,production,success",
+//			AssigneeAddress: "ops-team@example.com",
+//			AssigneeName:    "Ops Team",
+//			Artifacts:       "docker://registry.example.com/xyz:1.0.0",
+//			Url:             "http://example.com/deployment/xyz",
+//		},
 //		map[string]string{
 //			"addr":     "localhost",
 //			"port":     "6379",
@@ -46,6 +70,7 @@ var (
 //			"stream":   "messages",
 //		},
 //	)
+
 func EnqueueMessageInRedisStreams(
 	msg Message,
 	redisConnection map[string]string) (objectID, streamID string) {
