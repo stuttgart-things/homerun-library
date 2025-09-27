@@ -15,7 +15,6 @@ redis/redis-stack-server:7.2.0-v18
 ## RUN TESTS
 
 ```bash
-
 export REDIS_PASSWORD=<PASSWORD>
 go run tests/pitcher/pitch_message.go
 ```
