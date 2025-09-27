@@ -11,6 +11,10 @@ vars:
     sh: date -Ih
 
 tasks:
+  test-all:
+    cmds:
+      - dagger call -m .dagger run-all-tests --source .
+
   check:
     desc: "Run pre-commit hooks"
     cmds:
