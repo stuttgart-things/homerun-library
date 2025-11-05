@@ -64,7 +64,7 @@ func (m *Dagger) RunTestWithRedis(
 
 	// RUN TEST CONTAINER
 	return dag.Container().
-		From("golang:1.25-alpine").
+		From("golang:1.24-alpine").
 		WithMountedDirectory("/src", source).
 		WithWorkdir("/src").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomod")).

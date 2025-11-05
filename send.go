@@ -55,7 +55,11 @@ func SendToHomerun(destination, token string, renderedBody []byte, insecure bool
 		fmt.Println("ERROR AT SENDING REQUEST:", err)
 		return nil, nil
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Println("ERROR CLOSING RESPONSE BODY:", err)
+		}
+	}()
 
 	// READ THE ANSWER
 	answer, err = io.ReadAll(resp.Body)

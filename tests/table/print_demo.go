@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/stuttgart-things/homerun-library" // use module path from go.mod
+	homerun "github.com/stuttgart-things/homerun-library" // use module path from go.mod
 )
 
 func main() {
