@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nitishm/go-rejson/v4"
+	rejson "github.com/nitishm/go-rejson/v4"
 	"github.com/stretchr/testify/mock"
 )
 

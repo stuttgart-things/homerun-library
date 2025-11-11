@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/nitishm/go-rejson/v4"
+	rejson "github.com/nitishm/go-rejson/v4"
 	sthingsCli "github.com/stuttgart-things/sthingsCli"
 )
 
