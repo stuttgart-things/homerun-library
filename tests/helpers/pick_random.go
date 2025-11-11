@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/stuttgart-things/homerun-library" // use module path from go.mod
+	homerun "github.com/stuttgart-things/homerun-library" // use module path from go.mod
 )
 
 func main() {

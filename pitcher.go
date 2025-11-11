@@ -7,7 +7,7 @@ package homerun
 import (
 	"context"
 
-	"github.com/nitishm/go-rejson/v4"
+	rejson "github.com/nitishm/go-rejson/v4"
 	"github.com/nitishm/go-rejson/v4/clients"
 	"github.com/pterm/pterm"
 	sthingsCli "github.com/stuttgart-things/sthingsCli"
