@@ -50,19 +50,19 @@ func (m *Dagger) RunTestWithRedis(
 	testPath string,
 ) (string, error) {
 	// generate random redis password
-	redisPassword, err := randomPassword(16)
+	generatedRedisPassword, err := randomPassword(16)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate redis password: %w", err)
 	}
 
-	// start Redis service
+	// START REDIS SERVICE IN BACKGROUND
 	redis := dag.Container().
 		From("redis/redis-stack-server:7.2.0-v18").
-		WithEnvVariable("REDIS_ARGS", "--requirepass "+redisPassword).
+		WithEnvVariable("REDIS_ARGS", "--requirepass "+generatedRedisPassword).
 		WithExposedPort(6379).
 		AsService()
 
-	// run test container
+	// RUN TEST CONTAINER
 	return dag.Container().
 		From("golang:1.25-alpine").
 		WithMountedDirectory("/src", source).
@@ -73,7 +73,7 @@ func (m *Dagger) RunTestWithRedis(
 		WithEnvVariable("REDIS_ADDR", "redis").
 		WithEnvVariable("REDIS_PORT", "6379").
 		WithEnvVariable("REDIS_STREAM", "messages").
-		WithEnvVariable("REDIS_PASSWORD", redisPassword).
+		WithEnvVariable("REDIS_PASSWORD", generatedRedisPassword).
 		WithExec([]string{"go", "mod", "download"}).
 		WithExec([]string{"go", "run", testPath}).
 		Stdout(ctx)

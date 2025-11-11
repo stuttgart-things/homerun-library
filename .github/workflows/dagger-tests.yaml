@@ -1,0 +1,27 @@
+---
+name: Dagger Tests
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+      - 'feature/**'
+      - 'fix/**'
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  test:
+    name: Run Dagger Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Dagger tests
+        uses: dagger/dagger-for-github@v8.2.0
+        with:
+          version: "v0.19.6"
+          verb: call
+          module: .dagger
+          args: run-all-tests --source .
