@@ -13,6 +13,9 @@ type Dagger struct{}
 func (m *Dagger) RunAllTests(
 	ctx context.Context,
 	source *dagger.Directory,
+	// +optional
+	// +default="1.25.4"
+	goVersion string,
 ) bool {
 	tests := []string{
 		"tests/helpers/pick_random.go",
@@ -23,7 +26,7 @@ func (m *Dagger) RunAllTests(
 	allOK := true
 
 	for _, t := range tests {
-		_, err := m.RunTestWithRedis(ctx, source, t)
+		_, err := m.RunTestWithRedis(ctx, source, goVersion, t)
 		if err != nil {
 			fmt.Printf("❌ Test failed: %s (%v)\n", t, err)
 			allOK = false
@@ -47,6 +50,9 @@ func randomPassword(length int) (string, error) {
 func (m *Dagger) RunTestWithRedis(
 	ctx context.Context,
 	source *dagger.Directory,
+	// +optional
+	// +default="1.25.4"
+	goVersion string,
 	testPath string,
 ) (string, error) {
 	// generate random redis password
@@ -64,7 +70,7 @@ func (m *Dagger) RunTestWithRedis(
 
 	// RUN TEST CONTAINER
 	return dag.Container().
-		From("golang:1.24-alpine").
+		From("golang:"+goVersion+"-alpine").
 		WithMountedDirectory("/src", source).
 		WithWorkdir("/src").
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomod")).

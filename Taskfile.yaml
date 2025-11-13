@@ -7,6 +7,7 @@ vars:
     sh: if [ $(git rev-parse --abbrev-ref HEAD) != "main" ]; then echo $(git rev-parse --abbrev-ref HEAD); else echo main ; fi
   ORGA_NAME: stuttgart-things
   MODULE: github.com/{{ .ORGA_NAME }}/{{ .PROJECT_NAME }}
+  CI_MODULE: .dagger
   DATE:
     sh: date -Ih
 
@@ -18,6 +19,28 @@ tasks:
   test-all:
     cmds:
       - dagger call -m .dagger run-all-tests --source .
+
+  ci-run-static-checks:
+    cmds:
+      - |
+        dagger call -m {{ .CI_MODULE }} {{ .FUNCTION }} \
+        --src {{ .SRC }} \
+        --lintCanFail=true \
+        --go-Version=1.25.4 \
+        --test={{ .TEST }} \
+        --progress plain -vv \
+        export --path={{ .REPORT_PATH }}
+        cat {{ .REPORT_PATH }}
+    vars:
+      SRC: .
+      TEST: true
+      FUNCTION: run-static-stage
+      REPORT_PATH: /tmp/{{ .PROJECT_NAME }}-static-analysis-report.json
+
+  default:
+    desc: Default task is select & do (work)
+    cmds:
+      - task do
 
   check:
     desc: "Run pre-commit hooks"
