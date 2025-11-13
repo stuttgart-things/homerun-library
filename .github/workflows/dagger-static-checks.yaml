@@ -1,0 +1,35 @@
+---
+name: Dagger Static Checks
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+      - 'feature/**'
+      - 'fix/**'
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  static-analysis:
+    name: Run Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Run Dagger static checks
+        uses: dagger/dagger-for-github@v8.2.0
+        with:
+          version: "v0.19.6"
+          verb: call
+          module: .dagger
+          args: run-static-stage --src . --lint-can-fail=true --go-version=1.25.4 --test=true
+
+      - name: Upload static analysis report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis-report
+          path: /tmp/*-static-analysis-report.json
+          if-no-files-found: ignore
