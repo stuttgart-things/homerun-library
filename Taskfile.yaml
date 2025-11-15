@@ -18,7 +18,13 @@ includes:
 tasks:
   test-all:
     cmds:
-      - dagger call -m .dagger run-all-tests --source .
+      - |
+        dagger call -m {{ .CI_MODULE }} run-all-tests-with-report \
+        --source . \
+        export --path={{ .REPORT_PATH }}
+        cat {{ .REPORT_PATH }}
+    vars:
+      REPORT_PATH: /tmp/{{ .PROJECT_NAME }}-test-report.json
 
   ci-run-static-checks:
     cmds:
