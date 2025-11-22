@@ -1,5 +1,9 @@
 ---
 version: 3
+includes:
+  git:
+    taskfile: https://raw.githubusercontent.com/stuttgart-things/platform-engineering-showcase/refs/heads/main/taskfiles/git.yaml
+
 vars:
   PROJECT_NAME:
     sh: echo ${PWD##*/}
@@ -10,10 +14,6 @@ vars:
   CI_MODULE: .dagger
   DATE:
     sh: date -Ih
-
-includes:
-  git:
-    taskfile: https://raw.githubusercontent.com/stuttgart-things/platform-engineering-showcase/refs/heads/main/taskfiles/git.yaml
 
 tasks:
   test-all:
@@ -43,11 +43,6 @@ tasks:
       FUNCTION: run-static-stage
       REPORT_PATH: /tmp/{{ .PROJECT_NAME }}-static-analysis-report.json
 
-  default:
-    desc: Default task is select & do (work)
-    cmds:
-      - task do
-
   check:
     desc: "Run pre-commit hooks"
     cmds:
@@ -68,12 +63,6 @@ tasks:
       - cmd: golangci-lint run
         ignore_error: true
 
-  test:
-    desc: Test code
-    cmds:
-      - go mod tidy
-      - cmd: go test ./... -v
-
   tag:
     desc: Commit, push & tag the module
     deps: [lint, test, commit]
@@ -83,9 +72,17 @@ tasks:
       - git tag -a {{ .TAG }} -m 'updated for stuttgart-things {{.DATE}} for tag version {{ .TAG }}'
       - git push origin --tags
 
+  default:
+    desc: Default task is select & do (work)
+    cmds:
+      - task do
+
   do:
     desc: Select a task to run
     cmds:
       - |
-        task=$(yq e '.tasks | keys' Taskfile.yaml | sed 's/^- //' | gum choose)
-        task ${task}
+        # Extract task names (keep internal colons, remove only trailing colon)
+        task_name=$(task -l | awk '/^\*/ {print $2}' | sed 's/:$//' | gum choose)
+
+        # Run the selected task
+        [ -n "$task_name" ] && task "$task_name"
