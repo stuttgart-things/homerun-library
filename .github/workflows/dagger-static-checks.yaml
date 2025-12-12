@@ -28,7 +28,7 @@ jobs:
 
       - name: Upload static analysis report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: static-analysis-report
           path: /tmp/*-static-analysis-report.json
