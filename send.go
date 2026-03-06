@@ -49,7 +49,7 @@ func SendToHomerun(destination, token string, renderedBody []byte, insecure bool
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	answer, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -59,21 +59,16 @@ func SendToHomerun(destination, token string, renderedBody []byte, insecure bool
 	return answer, resp, nil
 }
 
-func RenderBody(templateData string, object interface{}) string {
-
+func RenderBody(templateData string, object interface{}) (string, error) {
 	tmpl, err := template.New("template").Parse(templateData)
 	if err != nil {
-		panic(err)
+		return "", fmt.Errorf("failed to parse template: %w", err)
 	}
 
 	var buf bytes.Buffer
-
-	err = tmpl.Execute(&buf, object)
-
-	if err != nil {
-		fmt.Println(err)
+	if err = tmpl.Execute(&buf, object); err != nil {
+		return "", fmt.Errorf("failed to execute template: %w", err)
 	}
 
-	return buf.String()
-
+	return buf.String(), nil
 }
