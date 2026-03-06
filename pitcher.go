@@ -80,22 +80,22 @@ var (
 //			Artifacts:       "docker://registry.example.com/xyz:1.0.0",
 //			Url:             "http://example.com/deployment/xyz",
 //		},
-//		map[string]string{
-//			"addr":     "localhost",
-//			"port":     "6379",
-//			"password": "",
-//			"stream":   "messages",
+//		homerun.RedisConfig{
+//			Addr:     "localhost",
+//			Port:     "6379",
+//			Password: "",
+//			Stream:   "messages",
 //		},
 //	)
 func EnqueueMessageInRedisStreams(
 	msg Message,
-	redisConnection map[string]string,
+	rc RedisConfig,
 ) (objectID, streamID string) {
 
 	redisJSONHandler := rejson.NewReJSONHandler()
 	redisClient := sthingsCli.CreateRedisClient(
-		redisConnection["addr"]+":"+redisConnection["port"],
-		redisConnection["password"],
+		rc.Addr+":"+rc.Port,
+		rc.Password,
 	)
 	var conn clients.GoRedisClientConn = redisClient
 	redisJSONHandler.SetGoRedisClientWithContext(context.Background(), conn)
@@ -105,14 +105,14 @@ func EnqueueMessageInRedisStreams(
 	sthingsCli.SetRedisJSON(redisJSONHandler, msg, objectID)
 
 	// Enqueue object reference in Redis Stream
-	streamID = redisConnection["stream"]
+	streamID = rc.Stream
 	streamValues := map[string]interface{}{
 		"messageID": objectID,
 	}
 
 	enqueue := sthingsCli.EnqueueDataInRedisStreams(
-		redisConnection["addr"]+":"+redisConnection["port"],
-		redisConnection["password"],
+		rc.Addr+":"+rc.Port,
+		rc.Password,
 		streamID,
 		streamValues,
 	)

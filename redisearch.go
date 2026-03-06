@@ -27,17 +27,17 @@ var (
 		AddField(redisearch.NewTextFieldOptions("url", redisearch.TextFieldOptions{Sortable: true}))
 )
 
-func StoreInRediSearch(message Message, redisConnection map[string]string) {
+func StoreInRediSearch(message Message, rc RedisConfig) {
 
 	// CREATE REDISEARCH CLIENT
-	connectionPool := sthingsCli.CreateRedisConnectionPool(redisConnection["addr"]+":"+redisConnection["port"], redisConnection["password"])
-	rediSearchClient := redisearch.NewClientFromPool(connectionPool, redisConnection["index"])
+	connectionPool := sthingsCli.CreateRedisConnectionPool(rc.Addr+":"+rc.Port, rc.Password)
+	rediSearchClient := redisearch.NewClientFromPool(connectionPool, rc.Index)
 
 	// CHECK/CREATE INDEX
 	indexExists, err := sthingsCli.CheckIfRedisSearchIndexExists(rediSearchClient)
 	if !indexExists && err == nil {
 		sthingsCli.CreateRedisSearchIndex(rediSearchClient, redisSearchSchema)
-		logger.Info("INDEX DID NOT EXIST, BUT WAS NOW CREATED", logger.Args("", redisConnection["index"]))
+		logger.Info("INDEX DID NOT EXIST, BUT WAS NOW CREATED", logger.Args("", rc.Index))
 	}
 
 	// INDEX THE DOCUMENTS ON INDEX

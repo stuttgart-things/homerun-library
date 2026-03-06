@@ -25,11 +25,11 @@ func main() {
 			Artifacts:       "docker://registry.example.com/xyz:1.0.0",
 			Url:             "http://example.com/deployment/xyz",
 		},
-		map[string]string{
-			"addr":     redisAddr,
-			"port":     redisPort,
-			"password": redisPassword,
-			"stream":   redisStream,
+		homerun.RedisConfig{
+			Addr:     redisAddr,
+			Port:     redisPort,
+			Password: redisPassword,
+			Stream:   redisStream,
 		},
 	)
 
