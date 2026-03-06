@@ -6,24 +6,10 @@ package homerun
 
 import (
 	"testing"
-	"time"
 
 	rejson "github.com/nitishm/go-rejson/v4"
 	"github.com/stretchr/testify/mock"
 )
-
-// NewMessage erstellt ein neues Message-Objekt
-func NewMessage(author, content, severity string) *Message {
-
-	timestamp := time.Now().Format(time.RFC3339)
-
-	return &Message{
-		Author:    author,
-		Message:   content,
-		Timestamp: timestamp,
-		Severity:  severity,
-	}
-}
 
 func TestNewMessage(t *testing.T) {
 	author := "Patrick Hermann"
