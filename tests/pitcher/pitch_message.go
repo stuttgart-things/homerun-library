@@ -11,7 +11,7 @@ func main() {
 	redisPassword := homerun.GetEnv("REDIS_PASSWORD", "")
 	redisStream := homerun.GetEnv("REDIS_STREAM", "messages")
 
-	objectID, streamID := homerun.EnqueueMessageInRedisStreams(
+	objectID, streamID, err := homerun.EnqueueMessageInRedisStreams(
 		homerun.Message{
 			Title:           "Deployment Notification",
 			Message:         "Service xyz deployed successfully",
@@ -33,6 +33,10 @@ func main() {
 		},
 	)
 
+	if err != nil {
+		println("Error:", err.Error())
+		return
+	}
 	println("Object ID:", objectID)
 	println("Stream ID:", streamID)
 }

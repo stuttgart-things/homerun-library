@@ -109,8 +109,9 @@ func TestEnqueueMessageInRedisStreams(t *testing.T) {
 		Stream:   "test-stream",
 	}
 
-	objectID, streamID := EnqueueMessageInRedisStreams(msg, rc)
+	objectID, streamID, err := EnqueueMessageInRedisStreams(msg, rc)
 
+	assert.NoError(t, err)
 	assert.NotEmpty(t, objectID)
 	assert.Equal(t, "test-stream", streamID)
 }
