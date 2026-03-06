@@ -6,7 +6,7 @@ package homerun
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"time"
 
 	rejson "github.com/nitishm/go-rejson/v4"
@@ -53,12 +53,12 @@ func GetMessageJSON(
 	// GET JSON AS MESSAGE OBJECT
 	obj, exist := sthingsCli.GetRedisJSON(redisJSONHandler, redisJSONid)
 
-	if exist {
-		jsonMessage = Message{}
-		err := json.Unmarshal(obj, &jsonMessage)
-		if err != nil {
-			log.Fatalf("FAILED TO JSON UNMARSHAL")
-		}
+	if !exist {
+		return jsonMessage, fmt.Errorf("redis JSON object not found: %s", redisJSONid)
+	}
+
+	if err = json.Unmarshal(obj, &jsonMessage); err != nil {
+		return jsonMessage, fmt.Errorf("failed to unmarshal message JSON: %w", err)
 	}
 
 	return

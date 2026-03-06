@@ -84,7 +84,10 @@ func TestRenderBody(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := RenderBody(test.templateData, test.object)
+		result, err := RenderBody(test.templateData, test.object)
+		if err != nil {
+			t.Fatalf("RenderBody returned unexpected error: %v", err)
+		}
 		if result != test.expected {
 			t.Errorf("For template '%s' and object %v, expected '%s' but got '%s'", test.templateData, test.object, test.expected, result)
 		}
