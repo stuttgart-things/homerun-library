@@ -43,15 +43,13 @@ func TestSendToHomerun(t *testing.T) {
 	renderedBody := []byte(`{"message":"hello"}`)
 
 	// Call the function
-	response, resp := SendToHomerun(destination, token, renderedBody, true)
+	response, resp, err := SendToHomerun(destination, token, renderedBody, true)
+	if err != nil {
+		t.Fatalf("SendToHomerun returned unexpected error: %v", err)
+	}
 	if resp == nil {
 		t.Fatal("Expected non-nil response")
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			t.Errorf("Error closing response body: %v", err)
-		}
-	}()
 
 	fmt.Println(resp.Status)
 

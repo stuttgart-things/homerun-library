@@ -31,44 +31,32 @@ var (
 )
 
 // SendToHomerun sends a message to the Homerun service with optional insecure TLS settings.
-func SendToHomerun(destination, token string, renderedBody []byte, insecure bool) (answer []byte, resp *http.Response) {
-	// CREATE HTTP-Request
+func SendToHomerun(destination, token string, renderedBody []byte, insecure bool) ([]byte, *http.Response, error) {
 	req, err := http.NewRequest("POST", destination, bytes.NewBuffer(renderedBody))
 	if err != nil {
-		fmt.Println("FAILURE AT CREATING REQUESTS:", err)
-		return nil, nil
+		return nil, nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// ADD HEADER
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("X-Auth-Token", token)
 
-	// CREATE CUSTOM HTTP CLIENT WITH INSECURE OPTION
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure}, //nolint:gosec // caller-controlled
 	}
 	client := &http.Client{Transport: tr}
 
-	// SEND REQUEST
-	resp, err = client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("ERROR AT SENDING REQUEST:", err)
-		return nil, nil
+		return nil, nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			fmt.Println("ERROR CLOSING RESPONSE BODY:", err)
-		}
-	}()
+	defer resp.Body.Close()
 
-	// READ THE ANSWER
-	answer, err = io.ReadAll(resp.Body)
+	answer, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("ERROR READING ANSWER:", err)
-		return nil, nil
+		return nil, resp, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	return answer, resp
+	return answer, resp, nil
 }
 
 func RenderBody(templateData string, object interface{}) string {
