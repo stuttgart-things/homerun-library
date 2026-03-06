@@ -9,28 +9,26 @@ import (
 )
 
 func TestPrintTable(t *testing.T) {
-	// Define the header and row for the table
 	header := table.Row{"Name", "Age"}
-	row := table.Row{"Alice", 30}
+	rows := []table.Row{
+		{"Alice", 30},
+		{"Bob", 25},
+	}
 
-	// Choose a table style
 	style := table.StyleLight
 
-	// Capture the output
 	var buf bytes.Buffer
 
-	// Call the function with the buffer as the output
-	PrintTable(&buf, header, row, style)
+	PrintTable(&buf, header, rows, style)
 
-	// Expected output (modify as needed based on the style chosen)
 	expected := `┌───────┬─────┐
 │ NAME  │ AGE │
 ├───────┼─────┤
 │ Alice │  30 │
+│ Bob   │  25 │
 └───────┴─────┘
 `
 
-	// Compare the captured output to the expected output
 	if buf.String() != expected {
 		t.Errorf("Output mismatch:\nGot:\n%s\nExpected:\n%s", buf.String(), expected)
 	}
