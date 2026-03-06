@@ -12,6 +12,15 @@ import (
 	sthingsCli "github.com/stuttgart-things/sthingsCli"
 )
 
+// RedisConfig holds Redis connection details used by pitcher and redisearch functions.
+type RedisConfig struct {
+	Addr     string // Redis host address
+	Port     string // Redis port
+	Password string // Redis password
+	Stream   string // Redis stream name (used by EnqueueMessageInRedisStreams)
+	Index    string // RediSearch index name (used by StoreInRediSearch)
+}
+
 type Message struct {
 	Title           string `json:"title,omitempty"`           // if empty: info
 	Message         string `json:"message,omitempty"`         // if empty: title

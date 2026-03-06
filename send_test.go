@@ -104,14 +104,14 @@ func TestEnqueueMessageInRedisStreams(t *testing.T) {
 		Tags:      "unit-test",
 	}
 
-	conn := map[string]string{
-		"addr":     "localhost",
-		"port":     "6379",
-		"password": "",
-		"stream":   "test-stream",
+	rc := RedisConfig{
+		Addr:     "localhost",
+		Port:     "6379",
+		Password: "",
+		Stream:   "test-stream",
 	}
 
-	objectID, streamID := EnqueueMessageInRedisStreams(msg, conn)
+	objectID, streamID := EnqueueMessageInRedisStreams(msg, rc)
 
 	assert.NotEmpty(t, objectID)
 	assert.Equal(t, "test-stream", streamID)
