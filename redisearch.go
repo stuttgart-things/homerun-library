@@ -5,6 +5,7 @@ Copyright © 2024 Patrick Hermann patrick.hermann@sva.de
 package homerun
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/RediSearch/redisearch-go/redisearch"
@@ -27,7 +28,7 @@ var (
 		AddField(redisearch.NewTextFieldOptions("url", redisearch.TextFieldOptions{Sortable: true}))
 )
 
-func StoreInRediSearch(message Message, rc RedisConfig) {
+func StoreInRediSearch(message Message, rc RedisConfig) error {
 
 	// CREATE REDISEARCH CLIENT
 	connectionPool := sthingsCli.CreateRedisConnectionPool(rc.Addr+":"+rc.Port, rc.Password)
@@ -35,7 +36,10 @@ func StoreInRediSearch(message Message, rc RedisConfig) {
 
 	// CHECK/CREATE INDEX
 	indexExists, err := sthingsCli.CheckIfRedisSearchIndexExists(rediSearchClient)
-	if !indexExists && err == nil {
+	if err != nil {
+		return fmt.Errorf("failed to check redisearch index: %w", err)
+	}
+	if !indexExists {
 		sthingsCli.CreateRedisSearchIndex(rediSearchClient, redisSearchSchema)
 		logger.Info("INDEX DID NOT EXIST, BUT WAS NOW CREATED", logger.Args("", rc.Index))
 	}
@@ -58,4 +62,5 @@ func StoreInRediSearch(message Message, rc RedisConfig) {
 	sthingsCli.IndexDocument(rediSearchClient, doc)
 
 	logger.Info("DOCUMENT WAS CREATED ON REDISEARCH", logger.Args("", doc, documentID, doc))
+	return nil
 }

@@ -7,6 +7,7 @@ package homerun
 
 import (
 	"context"
+	"fmt"
 
 	rejson "github.com/nitishm/go-rejson/v4"
 	"github.com/nitishm/go-rejson/v4/clients"
@@ -90,7 +91,7 @@ var (
 func EnqueueMessageInRedisStreams(
 	msg Message,
 	rc RedisConfig,
-) (objectID, streamID string) {
+) (objectID, streamID string, err error) {
 
 	redisJSONHandler := rejson.NewReJSONHandler()
 	redisClient := sthingsCli.CreateRedisClient(
@@ -117,17 +118,14 @@ func EnqueueMessageInRedisStreams(
 		streamValues,
 	)
 
-	if enqueue {
-		logger.Info(
-			"MESSAGE WAS ENQUEUED IN REDIS STREAMS",
-			logger.Args(streamID, streamValues),
-		)
-	} else {
-		logger.Error(
-			"MESSAGE WAS NOT ENQUEUED IN REDIS STREAMS",
-			logger.Args(streamID, streamValues),
-		)
+	if !enqueue {
+		return objectID, streamID, fmt.Errorf("failed to enqueue message in redis stream %s", streamID)
 	}
 
-	return objectID, streamID
+	logger.Info(
+		"MESSAGE WAS ENQUEUED IN REDIS STREAMS",
+		logger.Args(streamID, streamValues),
+	)
+
+	return objectID, streamID, nil
 }
