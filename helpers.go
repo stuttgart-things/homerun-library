@@ -7,7 +7,6 @@ package homerun
 import (
 	"math/rand"
 	"os"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -16,9 +15,7 @@ func GetRandomObject(input []string) string {
 	if len(input) == 0 {
 		return ""
 	}
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	randomIndex := rng.Intn(len(input))
-	return input[randomIndex]
+	return input[rand.Intn(len(input))]
 }
 
 func GenerateUUID() (randomID string) {
