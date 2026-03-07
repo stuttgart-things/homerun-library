@@ -8,7 +8,7 @@ package main
 import (
     "fmt"
     "time"
-    homerun "github.com/stuttgart-things/homerun-library"
+    homerun "github.com/stuttgart-things/homerun-library/v2/v2"
 )
 
 func main() {
@@ -55,7 +55,7 @@ package main
 
 import (
     "fmt"
-    homerun "github.com/stuttgart-things/homerun-library"
+    homerun "github.com/stuttgart-things/homerun-library/v2/v2"
 )
 
 func main() {
@@ -88,7 +88,7 @@ func main() {
 ```go
 package main
 
-import homerun "github.com/stuttgart-things/homerun-library"
+import homerun "github.com/stuttgart-things/homerun-library/v2/v2"
 
 func main() {
     err := homerun.StoreInRediSearch(
@@ -121,7 +121,7 @@ package main
 import (
     "os"
     "github.com/jedib0t/go-pretty/v6/table"
-    homerun "github.com/stuttgart-things/homerun-library"
+    homerun "github.com/stuttgart-things/homerun-library/v2/v2"
 )
 
 func main() {

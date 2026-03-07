@@ -1,7 +1,7 @@
 package main
 
 import (
-	homerun "github.com/stuttgart-things/homerun-library" // use module path from go.mod
+	homerun "github.com/stuttgart-things/homerun-library/v2" // use module path from go.mod
 )
 
 func main() {

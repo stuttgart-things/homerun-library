@@ -2,9 +2,9 @@
 
 Shared Go library module for the **homerun** microservice family.
 
-[![Dagger Static Checks](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-static-checks.yaml/badge.svg)](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-static-checks.yaml)
-[![Dagger Tests](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-tests.yaml/badge.svg)](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-tests.yaml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/stuttgart-things/homerun-library.svg)](https://pkg.go.dev/github.com/stuttgart-things/homerun-library)
+[![Dagger Static Checks](https://github.com/stuttgart-things/homerun-library/v2/actions/workflows/dagger-static-checks.yaml/badge.svg)](https://github.com/stuttgart-things/homerun-library/v2/actions/workflows/dagger-static-checks.yaml)
+[![Dagger Tests](https://github.com/stuttgart-things/homerun-library/v2/actions/workflows/dagger-tests.yaml/badge.svg)](https://github.com/stuttgart-things/homerun-library/v2/actions/workflows/dagger-tests.yaml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/stuttgart-things/homerun-library/v2.svg)](https://pkg.go.dev/github.com/stuttgart-things/homerun-library/v2)
 
 ## Features
 
@@ -20,7 +20,7 @@ Shared Go library module for the **homerun** microservice family.
 ## Installation
 
 ```bash
-go get github.com/stuttgart-things/homerun-library
+go get github.com/stuttgart-things/homerun-library/v2
 ```
 
 ## Usage
@@ -33,7 +33,7 @@ package main
 import (
     "fmt"
     "time"
-    homerun "github.com/stuttgart-things/homerun-library"
+    homerun "github.com/stuttgart-things/homerun-library/v2/v2"
 )
 
 func main() {
