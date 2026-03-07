@@ -1,3 +1,10 @@
+## [3.0.2](https://github.com/stuttgart-things/homerun-library/compare/v3.0.1...v3.0.2) (2026-03-07)
+
+
+### Bug Fixes
+
+* use t.Setenv in TestGetEnv to fix errcheck lint errors ([38c723f](https://github.com/stuttgart-things/homerun-library/commit/38c723f9dc34fface7398a8aa70b9bfebeaf85d1))
+
 ## [3.0.1](https://github.com/stuttgart-things/homerun-library/compare/v3.0.0...v3.0.1) (2026-03-07)
 
 
