@@ -1,3 +1,15 @@
+# [3.0.0](https://github.com/stuttgart-things/homerun-library/compare/v2.0.0...v3.0.0) (2026-03-07)
+
+
+* feat!: add /v2 module path for proper Go modules v2 semantics ([0c23391](https://github.com/stuttgart-things/homerun-library/commit/0c23391d05120a982a06deaad4494597ea1af610))
+
+
+### BREAKING CHANGES
+
+* import path changed to github.com/stuttgart-things/homerun-library/v2
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
 # [2.0.0](https://github.com/stuttgart-things/homerun-library/compare/v1.2.0...v2.0.0) (2026-03-07)
 
 
