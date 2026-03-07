@@ -111,23 +111,20 @@ func TestContains(t *testing.T) {
 
 func TestGetEnv(t *testing.T) {
 	t.Run("Returns value when env var is set", func(t *testing.T) {
-		os.Setenv("TEST_GETENV_VAR", "myvalue")
-		defer os.Unsetenv("TEST_GETENV_VAR")
+		t.Setenv("TEST_GETENV_VAR", "myvalue")
 		if result := GetEnv("TEST_GETENV_VAR", "fallback"); result != "myvalue" {
 			t.Errorf("Expected 'myvalue', got %q", result)
 		}
 	})
 
 	t.Run("Returns fallback when env var is not set", func(t *testing.T) {
-		os.Unsetenv("TEST_GETENV_MISSING")
-		if result := GetEnv("TEST_GETENV_MISSING", "default-val"); result != "default-val" {
+		if result := GetEnv("TEST_GETENV_UNIQUE_MISSING", "default-val"); result != "default-val" {
 			t.Errorf("Expected 'default-val', got %q", result)
 		}
 	})
 
 	t.Run("Returns empty string when env var is set to empty", func(t *testing.T) {
-		os.Setenv("TEST_GETENV_EMPTY", "")
-		defer os.Unsetenv("TEST_GETENV_EMPTY")
+		t.Setenv("TEST_GETENV_EMPTY", "")
 		if result := GetEnv("TEST_GETENV_EMPTY", "fallback"); result != "" {
 			t.Errorf("Expected empty string, got %q", result)
 		}
