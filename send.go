@@ -49,7 +49,7 @@ func SendToHomerun(destination, token string, renderedBody []byte, insecure bool
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	answer, err := io.ReadAll(resp.Body)
 	if err != nil {
