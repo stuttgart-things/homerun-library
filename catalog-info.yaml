@@ -1,0 +1,27 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: homerun-library
+  title: Homerun Library
+  description: Shared Go library for the homerun microservice family providing message handling, Redis queuing, RediSearch indexing, and HTTP sending.
+  annotations:
+    github.com/project-slug: stuttgart-things/homerun-library
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - go
+    - library
+    - redis
+    - messaging
+  links:
+    - url: https://github.com/stuttgart-things/homerun-library
+      title: GitHub Repository
+      icon: github
+    - url: https://pkg.go.dev/github.com/stuttgart-things/homerun-library
+      title: Go Package Documentation
+      icon: docs
+spec:
+  type: library
+  lifecycle: production
+  owner: stuttgart-things
+  system: homerun
