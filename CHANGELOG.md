@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/stuttgart-things/homerun-library/compare/v3.0.0...v3.0.1) (2026-03-07)
+
+
+### Bug Fixes
+
+* ignore .dagger directory in Renovate config ([3b9ea10](https://github.com/stuttgart-things/homerun-library/commit/3b9ea101273f3dc06d045b567bb759dbbcc78ef8))
+
 # [3.0.0](https://github.com/stuttgart-things/homerun-library/compare/v2.0.0...v3.0.0) (2026-03-07)
 
 
