@@ -5,6 +5,7 @@ Shared Go library module for the **homerun** microservice family.
 [![Dagger Static Checks](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-static-checks.yaml/badge.svg)](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-static-checks.yaml)
 [![Dagger Tests](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-tests.yaml/badge.svg)](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-tests.yaml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/stuttgart-things/homerun-library.svg)](https://pkg.go.dev/github.com/stuttgart-things/homerun-library)
+[![Documentation](https://img.shields.io/badge/docs-MkDocs-blue)](https://stuttgart-things.github.io/homerun-library/)
 
 ## Features
 
