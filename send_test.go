@@ -60,6 +60,27 @@ func TestSendToHomerun(t *testing.T) {
 	}
 }
 
+func TestSendToHomerunInvalidURL(t *testing.T) {
+	_, _, err := SendToHomerun("://invalid-url", "token", []byte(`{}`), true)
+	if err == nil {
+		t.Fatal("Expected error for invalid URL, got nil")
+	}
+}
+
+func TestSendToHomerunConnectionRefused(t *testing.T) {
+	_, _, err := SendToHomerun("http://127.0.0.1:1", "token", []byte(`{}`), true)
+	if err == nil {
+		t.Fatal("Expected error for connection refused, got nil")
+	}
+}
+
+func TestRenderBodyInvalidTemplate(t *testing.T) {
+	_, err := RenderBody("{{.Unclosed", nil)
+	if err == nil {
+		t.Fatal("Expected error for invalid template, got nil")
+	}
+}
+
 func TestRenderBody(t *testing.T) {
 	tests := []struct {
 		templateData string

@@ -30,6 +30,9 @@ func TestNewMessage(t *testing.T) {
 		t.Errorf("expected severity %s, got %s", severity, msg.Severity)
 	}
 
+	if msg.Timestamp == "" {
+		t.Error("expected non-empty timestamp")
+	}
 }
 
 // Mock for the sthingsCli package to mock GetRedisJSON
