@@ -1,3 +1,10 @@
+## [3.0.3](https://github.com/stuttgart-things/homerun-library/compare/v3.0.2...v3.0.3) (2026-03-08)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/redisearch/redisearch-go to v2 ([a578c49](https://github.com/stuttgart-things/homerun-library/commit/a578c491cebbbb7c547ca9ab06c218441d67ca47))
+
 ## [3.0.2](https://github.com/stuttgart-things/homerun-library/compare/v3.0.1...v3.0.2) (2026-03-07)
 
 
