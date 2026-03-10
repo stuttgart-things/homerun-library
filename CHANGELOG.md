@@ -1,3 +1,10 @@
+## [3.0.4](https://github.com/stuttgart-things/homerun-library/compare/v3.0.3...v3.0.4) (2026-03-10)
+
+
+### Bug Fixes
+
+* update module path from v2 to v3 to match semver tags ([#78](https://github.com/stuttgart-things/homerun-library/issues/78)) ([509e925](https://github.com/stuttgart-things/homerun-library/commit/509e92554f71475c622b38165235a72254a30faa))
+
 ## [3.0.3](https://github.com/stuttgart-things/homerun-library/compare/v3.0.2...v3.0.3) (2026-03-08)
 
 
