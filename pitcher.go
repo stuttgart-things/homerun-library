@@ -103,7 +103,9 @@ func EnqueueMessageInRedisStreams(
 
 	// Store message as Redis JSON
 	objectID = GenerateUUID() + "-" + msg.System
-	sthingsCli.SetRedisJSON(redisJSONHandler, msg, objectID)
+	if err = sthingsCli.SetRedisJSON(redisJSONHandler, msg, objectID); err != nil {
+		return objectID, "", fmt.Errorf("failed to set redis JSON for object %s: %w", objectID, err)
+	}
 
 	// Enqueue object reference in Redis Stream
 	streamID = rc.Stream
@@ -111,12 +113,16 @@ func EnqueueMessageInRedisStreams(
 		"messageID": objectID,
 	}
 
-	enqueue := sthingsCli.EnqueueDataInRedisStreams(
+	enqueue, err := sthingsCli.EnqueueDataInRedisStreams(
 		rc.Addr+":"+rc.Port,
 		rc.Password,
 		streamID,
 		streamValues,
 	)
+
+	if err != nil {
+		return objectID, streamID, fmt.Errorf("failed to enqueue message in redis stream %s: %w", streamID, err)
+	}
 
 	if !enqueue {
 		return objectID, streamID, fmt.Errorf("failed to enqueue message in redis stream %s", streamID)
