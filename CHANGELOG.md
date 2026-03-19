@@ -1,3 +1,10 @@
+## [3.0.5](https://github.com/stuttgart-things/homerun-library/compare/v3.0.4...v3.0.5) (2026-03-19)
+
+
+### Bug Fixes
+
+* handle redis errors instead of panicking via sthingsCli v0.3.1 ([14e1edb](https://github.com/stuttgart-things/homerun-library/commit/14e1edbc05d9708030d66eaf64025a8eec259608))
+
 ## [3.0.4](https://github.com/stuttgart-things/homerun-library/compare/v3.0.3...v3.0.4) (2026-03-10)
 
 
