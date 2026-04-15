@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/stuttgart-things/homerun-library/compare/v3.0.6...v3.1.0) (2026-04-15)
+
+
+### Features
+
+* add variadic streamOverride to EnqueueMessageInRedisStreams ([#85](https://github.com/stuttgart-things/homerun-library/issues/85)) ([2a85022](https://github.com/stuttgart-things/homerun-library/commit/2a8502256032808fa9c10808b0f59132d44dddea)), closes [#84](https://github.com/stuttgart-things/homerun-library/issues/84) [#83](https://github.com/stuttgart-things/homerun-library/issues/83)
+
 ## [3.0.6](https://github.com/stuttgart-things/homerun-library/compare/v3.0.5...v3.0.6) (2026-04-15)
 
 
