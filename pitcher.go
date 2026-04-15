@@ -88,9 +88,15 @@ var (
 //			Stream:   "messages",
 //		},
 //	)
+//
+// The optional variadic streamOverride parameter, if set and non-empty, publishes
+// to that stream instead of rc.Stream. Only the first value is used. This lets a
+// single process route messages to different streams without mutating shared
+// RedisConfig.
 func EnqueueMessageInRedisStreams(
 	msg Message,
 	rc RedisConfig,
+	streamOverride ...string,
 ) (objectID, streamID string, err error) {
 
 	redisJSONHandler := rejson.NewReJSONHandler()
@@ -108,7 +114,7 @@ func EnqueueMessageInRedisStreams(
 	}
 
 	// Enqueue object reference in Redis Stream
-	streamID = rc.Stream
+	streamID = resolveStream(rc, streamOverride...)
 	streamValues := map[string]interface{}{
 		"messageID": objectID,
 	}
@@ -134,4 +140,19 @@ func EnqueueMessageInRedisStreams(
 	)
 
 	return objectID, streamID, nil
+}
+
+// resolveStream picks the effective stream name: the first non-empty streamOverride
+// wins, otherwise rc.Stream. Extra override entries are ignored (a warning is logged).
+func resolveStream(rc RedisConfig, streamOverride ...string) string {
+	if len(streamOverride) > 1 {
+		logger.Warn(
+			"EnqueueMessageInRedisStreams received multiple streamOverride values; using the first",
+			logger.Args("count", len(streamOverride)),
+		)
+	}
+	if len(streamOverride) > 0 && streamOverride[0] != "" {
+		return streamOverride[0]
+	}
+	return rc.Stream
 }
