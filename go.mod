@@ -7,7 +7,7 @@ toolchain go1.26.2
 require (
 	github.com/RediSearch/redisearch-go v1.1.1
 	github.com/google/uuid v1.6.0
-	github.com/jedib0t/go-pretty/v6 v6.7.9
+	github.com/jedib0t/go-pretty/v6 v6.7.10
 	github.com/nitishm/go-rejson/v4 v4.2.0
 	github.com/pterm/pterm v0.12.83
 	github.com/stretchr/testify v1.11.1
