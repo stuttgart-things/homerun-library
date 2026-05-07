@@ -2,7 +2,7 @@ module github.com/stuttgart-things/homerun-library/v3
 
 go 1.25
 
-toolchain go1.26.2
+toolchain go1.26.3
 
 require (
 	github.com/RediSearch/redisearch-go v1.1.1
