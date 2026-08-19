@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/stuttgart-things/homerun-library/compare/v3.1.0...v3.1.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/stretchr/testify to v1.12.0 ([#91](https://github.com/stuttgart-things/homerun-library/issues/91)) ([79d3a05](https://github.com/stuttgart-things/homerun-library/commit/79d3a05e0872b3f1d640c4f037fa8e8f95529f8c))
+
 # [3.1.0](https://github.com/stuttgart-things/homerun-library/compare/v3.0.6...v3.1.0) (2026-04-15)
 
 
