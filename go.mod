@@ -10,7 +10,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.7.9
 	github.com/nitishm/go-rejson/v4 v4.2.0
 	github.com/pterm/pterm v0.12.83
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	github.com/stuttgart-things/sthingsCli v0.3.1
 )
 
@@ -174,7 +174,7 @@ require (
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/stuttgart-things/redisqueue v0.0.0-20230628084515-1d31f7874df7 // indirect
 	github.com/stuttgart-things/sthingsBase v0.1.41 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
