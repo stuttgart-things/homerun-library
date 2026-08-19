@@ -24,7 +24,9 @@ jobs:
           version: "v0.19.6"
           verb: call
           module: .dagger
-          args: run-all-tests-with-report --source . export --path=./test-report.json
+          args: >-
+            run-all-tests-with-report --source . --fail-on-error=false
+            export --path=./test-report.json
 
       - name: Display test report
         if: always()
@@ -43,3 +45,22 @@ jobs:
           name: test-report
           path: ./test-report.json
           retention-days: 30
+
+      # The Dagger call above is run with --fail-on-error=false so the report is
+      # always exported and uploaded. This step is what turns a failing suite
+      # into a failing job - without it the pipeline is green no matter what.
+      - name: Fail on failing tests
+        run: |
+          if [ ! -f ./test-report.json ]; then
+            echo "::error::no test report was produced - the test run itself failed"
+            exit 1
+          fi
+          failed=$(jq -r '.failed_tests' ./test-report.json)
+          total=$(jq -r '.total_tests' ./test-report.json)
+          if [ "${failed}" != "0" ]; then
+            jq -r '.results[] | select(.status == "failed")
+                   | "::error title=\(.test_path)::\(.error)"' ./test-report.json
+            echo "${failed} of ${total} tests failed"
+            exit 1
+          fi
+          echo "all ${total} tests passed"
