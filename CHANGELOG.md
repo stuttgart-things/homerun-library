@@ -1,3 +1,11 @@
+## [3.1.5](https://github.com/stuttgart-things/homerun-library/compare/v3.1.4...v3.1.5) (2026-08-19)
+
+
+### Bug Fixes
+
+* **ci:** make a failing test fail the pipeline ([#111](https://github.com/stuttgart-things/homerun-library/issues/111)) ([3018606](https://github.com/stuttgart-things/homerun-library/commit/3018606ee0a01edab7e504e7b8ae1c21b791bdf0)), closes [#95](https://github.com/stuttgart-things/homerun-library/issues/95)
+* JSON-escape template values in HomeRunBodyData ([#110](https://github.com/stuttgart-things/homerun-library/issues/110)) ([490208b](https://github.com/stuttgart-things/homerun-library/commit/490208b5179c31c312aff6d112edffc27020d55b)), closes [#96](https://github.com/stuttgart-things/homerun-library/issues/96)
+
 ## [3.1.4](https://github.com/stuttgart-things/homerun-library/compare/v3.1.3...v3.1.4) (2026-08-19)
 
 
