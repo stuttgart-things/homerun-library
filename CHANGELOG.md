@@ -1,3 +1,10 @@
+## [3.1.7](https://github.com/stuttgart-things/homerun-library/compare/v3.1.6...v3.1.7) (2026-08-19)
+
+
+### Bug Fixes
+
+* own the Redis connection lifecycle and stop killing the process ([#112](https://github.com/stuttgart-things/homerun-library/issues/112)) ([8bc42d4](https://github.com/stuttgart-things/homerun-library/commit/8bc42d498d1489d46cb179bc0e1b11b1e680bbf2)), closes [#97](https://github.com/stuttgart-things/homerun-library/issues/97) [#98](https://github.com/stuttgart-things/homerun-library/issues/98)
+
 ## [3.1.6](https://github.com/stuttgart-things/homerun-library/compare/v3.1.5...v3.1.6) (2026-08-19)
 
 
