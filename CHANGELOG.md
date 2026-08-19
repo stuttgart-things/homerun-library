@@ -1,3 +1,10 @@
+## [3.1.6](https://github.com/stuttgart-things/homerun-library/compare/v3.1.5...v3.1.6) (2026-08-19)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/redis/go-redis/v9 to v9.22.0 ([#109](https://github.com/stuttgart-things/homerun-library/issues/109)) ([a7c9677](https://github.com/stuttgart-things/homerun-library/commit/a7c96774af99323acb0618ef88fcbdbf53b17f71))
+
 ## [3.1.5](https://github.com/stuttgart-things/homerun-library/compare/v3.1.4...v3.1.5) (2026-08-19)
 
 
