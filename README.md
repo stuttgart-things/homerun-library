@@ -81,6 +81,18 @@ objectID, streamID, err := homerun.EnqueueMessageInRedisStreams(
 )
 ```
 
+### Publish repeatedly
+
+`EnqueueMessageInRedisStreams` opens a Redis connection and closes it again per
+call. A service that publishes continuously should own one connection instead:
+
+```go
+pitcher := homerun.NewPitcher(rc)
+defer pitcher.Close()
+
+objectID, streamID, err := pitcher.Enqueue(ctx, msg)
+```
+
 ### Utility functions
 
 ```go

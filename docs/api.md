@@ -38,6 +38,16 @@ type RedisConfig struct {
 }
 ```
 
+### Pitcher
+
+Owns the Redis connection used for publishing. Every `*redis.Client` carries its
+own connection pool, so callers that publish more than once should create one
+`Pitcher`, reuse it, and `Close` it when done.
+
+```go
+type Pitcher struct { /* ... */ }
+```
+
 ## Functions
 
 ### Constructors
@@ -54,6 +64,37 @@ func NewMessage(author, content, severity string) *Message
 
 ### Messaging
 
+#### `NewPitcher` / `Pitcher.Enqueue` / `Pitcher.Close`
+
+The reusable form. Opens one Redis connection, publishes through it, and hands
+the lifetime to the caller.
+
+```go
+func NewPitcher(rc RedisConfig) *Pitcher
+func (p *Pitcher) Enqueue(
+    ctx context.Context,
+    msg Message,
+    streamOverride ...string,
+) (objectID, streamID string, err error)
+func (p *Pitcher) Close() error
+```
+
+```go
+pitcher := homerun.NewPitcher(rc)
+defer pitcher.Close()
+
+for msg := range messages {
+    objectID, streamID, err := pitcher.Enqueue(ctx, msg)
+    // ...
+}
+```
+
+`Enqueue` takes a `context.Context`, so a publish can be cancelled or bounded by
+the caller. The optional variadic `streamOverride` publishes to a different
+stream than `rc.Stream`; only the first non-empty value is used.
+
+---
+
 #### `EnqueueMessageInRedisStreams`
 
 Stores a Message as Redis JSON and enqueues its ID into a Redis Stream.
@@ -62,6 +103,7 @@ Stores a Message as Redis JSON and enqueues its ID into a Redis Stream.
 func EnqueueMessageInRedisStreams(
     msg Message,
     rc RedisConfig,
+    streamOverride ...string,
 ) (objectID, streamID string, err error)
 ```
 
@@ -69,8 +111,13 @@ func EnqueueMessageInRedisStreams(
 
 - `msg` - The Message to store
 - `rc` - Redis connection config (uses `Addr`, `Port`, `Password`, `Stream`)
+- `streamOverride` - Optional stream name overriding `rc.Stream`
 
 **Returns:** The generated object ID, the stream name, and an error if enqueueing failed.
+
+This is the one-shot form: it opens a connection, publishes, and closes it
+again. For repeated publishing use `NewPitcher` instead of paying for a new
+connection pool per message.
 
 ---
 
@@ -87,7 +134,9 @@ func StoreInRediSearch(message Message, rc RedisConfig) error
 - `message` - The Message to index
 - `rc` - Redis connection config (uses `Addr`, `Port`, `Password`, `Index`)
 
-**Returns:** An error if the index check fails.
+**Returns:** An error if the index is unset, unreachable, cannot be created, or
+the document cannot be indexed. Every failure is returned - none of them
+terminates the calling process.
 
 ---
 
