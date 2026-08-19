@@ -8,7 +8,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.8.3
 	github.com/nitishm/go-rejson/v4 v4.2.0
 	github.com/pterm/pterm v0.12.83
-	github.com/redis/go-redis/v9 v9.7.3
+	github.com/redis/go-redis/v9 v9.22.0
 	github.com/stretchr/testify v1.12.0
 	github.com/stuttgart-things/sthingsCli v0.3.1
 )
@@ -191,7 +191,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.43.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.43.0 // indirect
 	go.opentelemetry.io/otel/trace v1.43.0 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.53.0 // indirect
