@@ -5,5 +5,13 @@
   ],
   "ignorePaths": [
     ".dagger/**"
+  ],
+  "packageRules": [
+    {
+      "description": "redisearch-go v2 cannot be adopted while sthingsCli exposes v1 client types; see #77",
+      "matchPackageNames": ["github.com/RediSearch/redisearch-go"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
   ]
 }
