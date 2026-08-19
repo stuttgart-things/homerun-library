@@ -24,7 +24,7 @@ jobs:
           version: "v0.19.6"
           verb: call
           module: .dagger
-          args: run-static-stage --src . --lint-can-fail=true --go-version=1.25.4 --test=true
+          args: run-static-stage --src . --lint-can-fail=true --go-version=1.26.6 --test=true
 
       - name: Upload static analysis report
         if: always()
