@@ -32,7 +32,7 @@ tasks:
         dagger call -m {{ .CI_MODULE }} {{ .FUNCTION }} \
         --src {{ .SRC }} \
         --lintCanFail=true \
-        --go-Version=1.25.4 \
+        --go-Version=1.26.6 \
         --test={{ .TEST }} \
         --progress plain -vv \
         export --path={{ .REPORT_PATH }}

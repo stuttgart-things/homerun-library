@@ -34,7 +34,7 @@ func (m *Dagger) RunAllTests(
 	ctx context.Context,
 	source *dagger.Directory,
 	// +optional
-	// +default="1.25.4"
+	// +default="1.26.6"
 	goVersion string,
 ) bool {
 	tests := []string{
@@ -95,7 +95,7 @@ func (m *Dagger) RunAllTestsWithReport(
 	ctx context.Context,
 	source *dagger.Directory,
 	// +optional
-	// +default="1.25.4"
+	// +default="1.26.6"
 	goVersion string,
 ) *dagger.File {
 	tests := []string{
@@ -166,7 +166,7 @@ func (m *Dagger) RunTestWithRedis(
 	ctx context.Context,
 	source *dagger.Directory,
 	// +optional
-	// +default="1.25.4"
+	// +default="1.26.6"
 	goVersion string,
 	testPath string,
 ) (string, error) {
