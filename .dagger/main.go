@@ -102,14 +102,22 @@ func (m *Dagger) RunAllTests(
 	return allOK
 }
 
-// RunAllTestsWithReport runs all tests and exports the test report as a file
+// RunAllTestsWithReport runs all tests and exports the test report as a file.
+//
+// The report is always produced, so the CI artifact survives a failing run.
+// Unless failOnError is disabled, the call itself also returns an error when a
+// test failed — without that, a red suite still exits 0 and the pipeline goes
+// green (see issue #95).
 func (m *Dagger) RunAllTestsWithReport(
 	ctx context.Context,
 	source *dagger.Directory,
 	// +optional
 	// +default="1.26.6"
 	goVersion string,
-) *dagger.File {
+	// +optional
+	// +default=true
+	failOnError bool,
+) (*dagger.File, error) {
 	report := TestReport{
 		TotalTests: len(redisTests),
 		Timestamp:  time.Now().Format(time.RFC3339),
@@ -155,9 +163,15 @@ func (m *Dagger) RunAllTestsWithReport(
 	fmt.Printf("\n=== Test Report ===\n%s\n", string(reportJSON))
 
 	// Return the report as a Dagger file
-	return dag.Directory().
+	reportFile := dag.Directory().
 		WithNewFile("test-report.json", string(reportJSON)).
 		File("test-report.json")
+
+	if failOnError && report.FailedTests > 0 {
+		return reportFile, fmt.Errorf("%d of %d tests failed", report.FailedTests, report.TotalTests)
+	}
+
+	return reportFile, nil
 }
 
 // helper: generate a random password
