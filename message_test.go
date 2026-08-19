@@ -6,9 +6,6 @@ package homerun
 
 import (
 	"testing"
-
-	rejson "github.com/nitishm/go-rejson/v4"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestNewMessage(t *testing.T) {
@@ -33,14 +30,4 @@ func TestNewMessage(t *testing.T) {
 	if msg.Timestamp == "" {
 		t.Error("expected non-empty timestamp")
 	}
-}
-
-// Mock for the sthingsCli package to mock GetRedisJSON
-type MockRedisClient struct {
-	mock.Mock
-}
-
-func (m *MockRedisClient) GetRedisJSON(handler *rejson.Handler, key string) ([]byte, bool) {
-	args := m.Called(handler, key)
-	return args.Get(0).([]byte), args.Bool(1)
 }

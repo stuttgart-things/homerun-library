@@ -8,9 +8,13 @@
   ],
   "packageRules": [
     {
-      "description": "redisearch-go v2 cannot be adopted while sthingsCli exposes v1 client types; see #77",
-      "matchPackageNames": ["github.com/RediSearch/redisearch-go"],
-      "matchUpdateTypes": ["major"],
+      "description": "redisearch-go v2 needs the imports in redisearch.go migrated first; the sthingsCli blocker is gone since #100, so this rule can be dropped together with that migration. See #77.",
+      "matchPackageNames": [
+        "github.com/RediSearch/redisearch-go"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "enabled": false
     }
   ]
