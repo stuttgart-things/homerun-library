@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	homerun "github.com/stuttgart-things/homerun-library/v3" // use module path from go.mod
 )
 
@@ -35,7 +37,7 @@ func main() {
 
 	if err != nil {
 		println("Error:", err.Error())
-		return
+		os.Exit(1)
 	}
 	println("Object ID:", objectID)
 	println("Stream ID:", streamID)

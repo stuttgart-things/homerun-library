@@ -24,12 +24,42 @@ jobs:
           version: "v0.19.6"
           verb: call
           module: .dagger
-          args: run-static-stage --src . --lint-can-fail=true --go-version=1.26.6 --test=true
+          args: >-
+            run-static-stage --src . --lint-can-fail=true --go-version=1.26.6 --test=true
+            export --path=./static-analysis-report.json
+
+      - name: Display static analysis report
+        if: always()
+        run: |
+          if [ -f ./static-analysis-report.json ]; then
+            echo "=== Static Analysis Report ==="
+            cat ./static-analysis-report.json
+          else
+            echo "Static analysis report not found"
+          fi
 
       - name: Upload static analysis report
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: static-analysis-report
-          path: /tmp/*-static-analysis-report.json
-          if-no-files-found: ignore
+          path: ./static-analysis-report.json
+
+      # run-static-stage writes "has_failures" into the report and still exits 0.
+      # Without this step a failing `go test` inside the stage goes unnoticed.
+      - name: Fail on failing tests
+        run: |
+          if [ ! -f ./static-analysis-report.json ]; then
+            echo "::error::no static analysis report was produced"
+            exit 1
+          fi
+          if [ "$(jq -r '.lint.failed' ./static-analysis-report.json)" = "true" ]; then
+            echo "::warning::golangci-lint reported findings (lint-can-fail=true, not blocking)"
+            jq -r '.lint.findings[]?' ./static-analysis-report.json
+          fi
+          if [ "$(jq -r '.test.failed' ./static-analysis-report.json)" = "true" ]; then
+            echo "::error::go test failed inside the static stage"
+            jq -r '.test.output' ./static-analysis-report.json
+            exit 1
+          fi
+          echo "static stage clean"

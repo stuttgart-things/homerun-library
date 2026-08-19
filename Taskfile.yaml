@@ -17,16 +17,20 @@ vars:
 
 tasks:
   test-all:
+    desc: Run the full Dagger test suite and fail on a failing test
     cmds:
       - |
         dagger call -m {{ .CI_MODULE }} run-all-tests-with-report \
-        --source . \
+        --source . --fail-on-error=false \
         export --path={{ .REPORT_PATH }}
         cat {{ .REPORT_PATH }}
+        failed=$(jq -r '.failed_tests' {{ .REPORT_PATH }})
+        [ "${failed}" = "0" ] || { echo "${failed} test(s) failed"; exit 1; }
     vars:
       REPORT_PATH: /tmp/{{ .PROJECT_NAME }}-test-report.json
 
   ci-run-static-checks:
+    desc: Run lint + tests via Dagger and fail on a failing test
     cmds:
       - |
         dagger call -m {{ .CI_MODULE }} {{ .FUNCTION }} \
@@ -37,6 +41,7 @@ tasks:
         --progress plain -vv \
         export --path={{ .REPORT_PATH }}
         cat {{ .REPORT_PATH }}
+        [ "$(jq -r '.test.failed' {{ .REPORT_PATH }})" != "true" ] || { echo "go test failed"; exit 1; }
     vars:
       SRC: .
       TEST: true
