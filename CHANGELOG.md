@@ -1,3 +1,10 @@
+## [3.1.4](https://github.com/stuttgart-things/homerun-library/compare/v3.1.3...v3.1.4) (2026-08-19)
+
+
+### Bug Fixes
+
+* **test:** make go test hermetic, move Redis cases behind a build tag ([#107](https://github.com/stuttgart-things/homerun-library/issues/107)) ([4f7bbab](https://github.com/stuttgart-things/homerun-library/commit/4f7bbab07c56cb7c761f3377f3ac49cc4aaf988d)), closes [#102](https://github.com/stuttgart-things/homerun-library/issues/102)
+
 ## [3.1.3](https://github.com/stuttgart-things/homerun-library/compare/v3.1.2...v3.1.3) (2026-08-19)
 
 
