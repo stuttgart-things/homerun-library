@@ -5,6 +5,7 @@ Copyright © 2024 Patrick Hermann patrick.hermann@sva.de
 package homerun
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -109,6 +110,106 @@ func TestRenderBody(t *testing.T) {
 		}
 		if result != test.expected {
 			t.Errorf("For template '%s' and object %v, expected '%s' but got '%s'", test.templateData, test.object, test.expected, result)
+		}
+	}
+}
+
+func TestRenderBodyEscapesJSON(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  Message
+	}{
+		{
+			name: "double quotes",
+			msg:  Message{Title: `Build "42" failed`, Message: "unexpected end of JSON"},
+		},
+		{
+			name: "newlines and tabs",
+			msg:  Message{Title: "stack trace", Message: "line1\nline2\tindented"},
+		},
+		{
+			name: "backslashes",
+			msg:  Message{Title: `C:\builds\42`, Artifacts: `\\share\artifacts`},
+		},
+		{
+			name: "control characters and unicode",
+			msg:  Message{Title: "bell\x07", Message: "grüße 🎉"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rendered, err := RenderBody(HomeRunBodyData, tt.msg)
+			if err != nil {
+				t.Fatalf("RenderBody returned unexpected error: %v", err)
+			}
+
+			var got Message
+			if err := json.Unmarshal([]byte(rendered), &got); err != nil {
+				t.Fatalf("rendered body is not valid JSON: %v\n%s", err, rendered)
+			}
+
+			if got.Title != tt.msg.Title {
+				t.Errorf("Title round-trip mismatch:\n got %q\nwant %q", got.Title, tt.msg.Title)
+			}
+			if got.Message != tt.msg.Message {
+				t.Errorf("Message round-trip mismatch:\n got %q\nwant %q", got.Message, tt.msg.Message)
+			}
+			if got.Artifacts != tt.msg.Artifacts {
+				t.Errorf("Artifacts round-trip mismatch:\n got %q\nwant %q", got.Artifacts, tt.msg.Artifacts)
+			}
+		})
+	}
+}
+
+func TestRenderBodyResistsFieldInjection(t *testing.T) {
+	// A caller that controls a single field must not be able to set another one.
+	msg := Message{
+		Title:  `benign", "Severity": "critical`,
+		Author: `x", "System": "spoofed`,
+	}
+
+	rendered, err := RenderBody(HomeRunBodyData, msg)
+	if err != nil {
+		t.Fatalf("RenderBody returned unexpected error: %v", err)
+	}
+
+	var got Message
+	if err := json.Unmarshal([]byte(rendered), &got); err != nil {
+		t.Fatalf("rendered body is not valid JSON: %v\n%s", err, rendered)
+	}
+
+	if got.Severity != "" {
+		t.Errorf("Severity was injected through Title: %q", got.Severity)
+	}
+	if got.System != "" {
+		t.Errorf("System was injected through Author: %q", got.System)
+	}
+	if got.Title != msg.Title {
+		t.Errorf("Title round-trip mismatch:\n got %q\nwant %q", got.Title, msg.Title)
+	}
+}
+
+func TestJSONEscape(t *testing.T) {
+	tests := []struct {
+		in   any
+		want string
+	}{
+		{`plain`, `plain`},
+		{`with "quotes"`, `with \"quotes\"`},
+		{"tab\there", `tab\there`},
+		{`back\slash`, `back\\slash`},
+		{nil, ``},
+		{42, `42`},
+	}
+
+	for _, tt := range tests {
+		got, err := jsonEscape(tt.in)
+		if err != nil {
+			t.Fatalf("jsonEscape(%v) returned unexpected error: %v", tt.in, err)
+		}
+		if got != tt.want {
+			t.Errorf("jsonEscape(%v) = %q, want %q", tt.in, got, tt.want)
 		}
 	}
 }

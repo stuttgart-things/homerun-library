@@ -7,6 +7,7 @@ package homerun
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,21 +15,56 @@ import (
 )
 
 var (
-	contentType     = "application/json"
+	contentType = "application/json"
+
+	// HomeRunBodyData is the default request body template for SendToHomerun.
+	//
+	// Every value goes through the esc function, which JSON-escapes it. Without
+	// that, a field containing a quote, a newline or a backslash - a CI failure
+	// message, a stack trace, a Windows path - produces a document the receiver
+	// rejects, and a crafted field can inject or override sibling keys.
 	HomeRunBodyData = `{
-		"Title": "{{ .Title }}",
-		"Message": "{{ .Message }}",
-		"Severity": "{{ .Severity }}",
-		"Author": "{{ .Author }}",
-		"Timestamp": "{{ .Timestamp }}",
-		"System": "{{ .System }}",
-		"Tags": "{{ .Tags }}",
-		"AssigneeAddress": "{{ .AssigneeAddress }}",
-		"AssigneeName": "{{ .AssigneeName }}",
-		"Artifacts": "{{ .Artifacts }}",
-		"Url": "{{ .Url }}"
+		"Title": "{{ esc .Title }}",
+		"Message": "{{ esc .Message }}",
+		"Severity": "{{ esc .Severity }}",
+		"Author": "{{ esc .Author }}",
+		"Timestamp": "{{ esc .Timestamp }}",
+		"System": "{{ esc .System }}",
+		"Tags": "{{ esc .Tags }}",
+		"AssigneeAddress": "{{ esc .AssigneeAddress }}",
+		"AssigneeName": "{{ esc .AssigneeName }}",
+		"Artifacts": "{{ esc .Artifacts }}",
+		"Url": "{{ esc .Url }}"
 	}`
+
+	// templateFuncs are available to every template rendered by RenderBody.
+	templateFuncs = template.FuncMap{"esc": jsonEscape}
 )
+
+// jsonEscape renders v as the *contents* of a JSON string - escaped, without
+// the surrounding quotes - so it can be interpolated into a JSON template that
+// supplies the quotes itself.
+func jsonEscape(v any) (string, error) {
+	var s string
+	switch t := v.(type) {
+	case nil:
+		return "", nil
+	case string:
+		s = t
+	case fmt.Stringer:
+		s = t.String()
+	default:
+		s = fmt.Sprint(v)
+	}
+
+	encoded, err := json.Marshal(s)
+	if err != nil {
+		return "", fmt.Errorf("failed to escape value for JSON: %w", err)
+	}
+
+	// strip the quotes json.Marshal added; the template provides them
+	return string(encoded[1 : len(encoded)-1]), nil
+}
 
 // SendToHomerun sends a message to the Homerun service with optional insecure TLS settings.
 func SendToHomerun(destination, token string, renderedBody []byte, insecure bool) ([]byte, *http.Response, error) {
@@ -59,8 +95,14 @@ func SendToHomerun(destination, token string, renderedBody []byte, insecure bool
 	return answer, resp, nil
 }
 
+// RenderBody renders templateData with object.
+//
+// The esc function is registered for JSON escaping - any template that
+// interpolates untrusted values into a JSON document must apply it to every
+// field, as HomeRunBodyData does. A template that interpolates raw values can
+// still produce malformed or injected JSON.
 func RenderBody(templateData string, object interface{}) (string, error) {
-	tmpl, err := template.New("template").Parse(templateData)
+	tmpl, err := template.New("template").Funcs(templateFuncs).Parse(templateData)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse template: %w", err)
 	}
