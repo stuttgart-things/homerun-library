@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"time"
 
+	redigo "github.com/gomodule/redigo/redis"
 	rejson "github.com/nitishm/go-rejson/v4"
-	sthingsCli "github.com/stuttgart-things/sthingsCli"
 )
 
 // RedisConfig holds Redis connection details used by pitcher and redisearch functions.
@@ -46,15 +46,21 @@ func NewMessage(author, content, severity string) *Message {
 	}
 }
 
+// GetMessageJSON reads the Redis JSON document stored under redisJSONid and
+// decodes it into a Message.
 func GetMessageJSON(
 	redisJSONid string,
 	redisJSONHandler *rejson.Handler) (jsonMessage Message, err error) {
 
 	// GET JSON AS MESSAGE OBJECT
-	obj, exist := sthingsCli.GetRedisJSON(redisJSONHandler, redisJSONid)
+	raw, err := redisJSONHandler.JSONGet(redisJSONid, ".")
+	if err != nil {
+		return jsonMessage, fmt.Errorf("redis JSON object not found: %s: %w", redisJSONid, err)
+	}
 
-	if !exist {
-		return jsonMessage, fmt.Errorf("redis JSON object not found: %s", redisJSONid)
+	obj, err := redigo.Bytes(raw, nil)
+	if err != nil {
+		return jsonMessage, fmt.Errorf("unexpected redis JSON payload for %s: %w", redisJSONid, err)
 	}
 
 	if err = json.Unmarshal(obj, &jsonMessage); err != nil {
