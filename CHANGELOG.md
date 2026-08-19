@@ -1,3 +1,10 @@
+## [3.1.3](https://github.com/stuttgart-things/homerun-library/compare/v3.1.2...v3.1.3) (2026-08-19)
+
+
+### Bug Fixes
+
+* **deps:** resolve all reachable vulnerabilities in the dependency graph ([#93](https://github.com/stuttgart-things/homerun-library/issues/93)) ([69d2762](https://github.com/stuttgart-things/homerun-library/commit/69d27627da74494e111332bcf3c9a1979f399e51))
+
 ## [3.1.2](https://github.com/stuttgart-things/homerun-library/compare/v3.1.1...v3.1.2) (2026-08-19)
 
 
