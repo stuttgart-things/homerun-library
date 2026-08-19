@@ -30,6 +30,23 @@ type TestReport struct {
 	Results       []TestResult `json:"results"`
 }
 
+// testCase is one entry of the Redis-backed test suite. Cmd is executed in the
+// test container with a redis-stack service bound.
+type testCase struct {
+	Name string
+	Cmd  []string
+}
+
+// redisTests are run by RunAllTests and RunAllTestsWithReport. The demo
+// programs under tests/ exercise the public API end to end; the tagged Go test
+// suite covers the cases that need a real RedisJSON server.
+var redisTests = []testCase{
+	{Name: "tests/helpers/pick_random.go", Cmd: []string{"go", "run", "tests/helpers/pick_random.go"}},
+	{Name: "tests/pitcher/pitch_message.go", Cmd: []string{"go", "run", "tests/pitcher/pitch_message.go"}},
+	{Name: "tests/table/print_demo.go", Cmd: []string{"go", "run", "tests/table/print_demo.go"}},
+	{Name: "go test -tags=integration ./...", Cmd: []string{"go", "test", "-tags=integration", "-v", "./..."}},
+}
+
 func (m *Dagger) RunAllTests(
 	ctx context.Context,
 	source *dagger.Directory,
@@ -37,24 +54,19 @@ func (m *Dagger) RunAllTests(
 	// +default="1.26.6"
 	goVersion string,
 ) bool {
-	tests := []string{
-		"tests/helpers/pick_random.go",
-		"tests/pitcher/pitch_message.go",
-		"tests/table/print_demo.go",
-	}
-
 	report := TestReport{
-		TotalTests: len(tests),
+		TotalTests: len(redisTests),
 		Timestamp:  time.Now().Format(time.RFC3339),
-		Results:    make([]TestResult, 0, len(tests)),
+		Results:    make([]TestResult, 0, len(redisTests)),
 	}
 
 	allOK := true
 	startTime := time.Now()
 
-	for _, t := range tests {
+	for _, tc := range redisTests {
+		t := tc.Name
 		testStart := time.Now()
-		_, err := m.RunTestWithRedis(ctx, source, goVersion, t)
+		_, err := m.runWithRedis(ctx, source, goVersion, tc.Cmd)
 		duration := time.Since(testStart).Seconds()
 
 		result := TestResult{
@@ -98,23 +110,18 @@ func (m *Dagger) RunAllTestsWithReport(
 	// +default="1.26.6"
 	goVersion string,
 ) *dagger.File {
-	tests := []string{
-		"tests/helpers/pick_random.go",
-		"tests/pitcher/pitch_message.go",
-		"tests/table/print_demo.go",
-	}
-
 	report := TestReport{
-		TotalTests: len(tests),
+		TotalTests: len(redisTests),
 		Timestamp:  time.Now().Format(time.RFC3339),
-		Results:    make([]TestResult, 0, len(tests)),
+		Results:    make([]TestResult, 0, len(redisTests)),
 	}
 
 	startTime := time.Now()
 
-	for _, t := range tests {
+	for _, tc := range redisTests {
+		t := tc.Name
 		testStart := time.Now()
-		_, err := m.RunTestWithRedis(ctx, source, goVersion, t)
+		_, err := m.runWithRedis(ctx, source, goVersion, tc.Cmd)
 		duration := time.Since(testStart).Seconds()
 
 		result := TestResult{
@@ -170,6 +177,17 @@ func (m *Dagger) RunTestWithRedis(
 	goVersion string,
 	testPath string,
 ) (string, error) {
+	return m.runWithRedis(ctx, source, goVersion, []string{"go", "run", testPath})
+}
+
+// runWithRedis executes cmd in a Go container with a redis-stack service bound
+// as "redis". Connection details are exported as REDIS_* environment variables.
+func (m *Dagger) runWithRedis(
+	ctx context.Context,
+	source *dagger.Directory,
+	goVersion string,
+	cmd []string,
+) (string, error) {
 	// generate random redis password
 	generatedRedisPassword, err := randomPassword(16)
 	if err != nil {
@@ -196,6 +214,6 @@ func (m *Dagger) RunTestWithRedis(
 		WithEnvVariable("REDIS_STREAM", "messages").
 		WithEnvVariable("REDIS_PASSWORD", generatedRedisPassword).
 		WithExec([]string{"go", "mod", "download"}).
-		WithExec([]string{"go", "run", testPath}).
+		WithExec(cmd).
 		Stdout(ctx)
 }
