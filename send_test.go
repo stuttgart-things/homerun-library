@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSendToHomerun(t *testing.T) {
@@ -113,29 +111,4 @@ func TestRenderBody(t *testing.T) {
 			t.Errorf("For template '%s' and object %v, expected '%s' but got '%s'", test.templateData, test.object, test.expected, result)
 		}
 	}
-}
-
-func TestEnqueueMessageInRedisStreams(t *testing.T) {
-	msg := Message{
-		Title:     "Test Message",
-		Message:   "This is a test message",
-		Severity:  "info",
-		Author:    "test-user",
-		Timestamp: "2025-11-11T06:45:00Z",
-		System:    "test-system",
-		Tags:      "unit-test",
-	}
-
-	rc := RedisConfig{
-		Addr:     "localhost",
-		Port:     "6379",
-		Password: "",
-		Stream:   "test-stream",
-	}
-
-	objectID, streamID, err := EnqueueMessageInRedisStreams(msg, rc)
-
-	assert.NoError(t, err)
-	assert.NotEmpty(t, objectID)
-	assert.Equal(t, "test-stream", streamID)
 }

@@ -8,6 +8,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.8.3
 	github.com/nitishm/go-rejson/v4 v4.2.0
 	github.com/pterm/pterm v0.12.83
+	github.com/redis/go-redis/v9 v9.7.3
 	github.com/stretchr/testify v1.12.0
 	github.com/stuttgart-things/sthingsCli v0.3.1
 )
@@ -151,7 +152,6 @@ require (
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
-	github.com/redis/go-redis/v9 v9.7.3 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
