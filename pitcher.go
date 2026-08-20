@@ -177,6 +177,22 @@ func EnqueueMessageInRedisStreams(
 	rc RedisConfig,
 	streamOverride ...string,
 ) (objectID, streamID string, err error) {
+	return EnqueueMessageInRedisStreamsContext(context.Background(), msg, rc, streamOverride...)
+}
+
+// EnqueueMessageInRedisStreamsContext is EnqueueMessageInRedisStreams bounded by
+// ctx: the publish can be cancelled, given a deadline, and carry a
+// request-scoped trace.
+//
+// Like EnqueueMessageInRedisStreams this is the one-shot form - it opens a
+// Redis connection, publishes, and closes it again. Callers that publish
+// repeatedly should use NewPitcher and reuse the Pitcher.
+func EnqueueMessageInRedisStreamsContext(
+	ctx context.Context,
+	msg Message,
+	rc RedisConfig,
+	streamOverride ...string,
+) (objectID, streamID string, err error) {
 
 	pitcher := NewPitcher(rc)
 	defer func() {
@@ -185,7 +201,7 @@ func EnqueueMessageInRedisStreams(
 		}
 	}()
 
-	return pitcher.Enqueue(context.Background(), msg, streamOverride...)
+	return pitcher.Enqueue(ctx, msg, streamOverride...)
 }
 
 // resolveStream picks the effective stream name: the first non-empty streamOverride

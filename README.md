@@ -93,6 +93,29 @@ defer pitcher.Close()
 objectID, streamID, err := pitcher.Enqueue(ctx, msg)
 ```
 
+### Cancellation and timeouts
+
+Every function that talks to the network has a context-taking variant. The
+context-free forms are wrappers passing `context.Background()`, so nothing
+breaks if you do not need one:
+
+```go
+ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+defer cancel()
+
+_, _, err := homerun.SendToHomerunContext(ctx, dest, token, body, false)
+_, _, err = homerun.EnqueueMessageInRedisStreamsContext(ctx, msg, rc)
+err = homerun.StoreInRediSearchContext(ctx, msg, rc)
+```
+
+Even without a context, HTTP sends are bounded by `homerun.DefaultHTTPTimeout`
+(30s) and Redis calls by connection deadlines. To use your own transport,
+proxy, instrumentation or retry wrapper:
+
+```go
+homerun.SetHTTPClient(&http.Client{Timeout: 5 * time.Second})
+```
+
 ### Logging
 
 The library is silent by default. Install a logger to see what it is doing:
