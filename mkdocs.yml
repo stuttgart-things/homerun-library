@@ -31,6 +31,7 @@ nav:
   - API Reference: api.md
   - Usage Examples: usage.md
   - Development: development.md
+  - Migration v3 → v4: migration-v4.md
 
 markdown_extensions:
   - pymdownx.highlight:

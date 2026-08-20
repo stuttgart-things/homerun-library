@@ -23,11 +23,6 @@ linters:
       - path: _test\.go
         linters:
           - errcheck
-          # SendToHomerun closes the response body itself before returning it;
-          # bodyclose cannot see through the wrapper and flags every call site.
-          # That the function returns an already-closed *http.Response at all is
-          # a genuine API smell, but fixing it changes the signature (see #106).
-          - bodyclose
 
 formatters:
   enable:

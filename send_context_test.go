@@ -30,7 +30,7 @@ func TestSendToHomerunContextRespectsCancellation(t *testing.T) {
 	defer cancel()
 
 	start := time.Now()
-	_, _, err := SendToHomerunContext(ctx, srv.URL, "token", []byte(`{}`), false)
+	_, err := SendToHomerunContext(ctx, srv.URL, "token", []byte(`{}`), false)
 	elapsed := time.Since(start)
 
 	if err == nil {
@@ -60,7 +60,7 @@ func TestSendToHomerunContextIsCancellableMidFlight(t *testing.T) {
 		cancel()
 	}()
 
-	_, _, err := SendToHomerunContext(ctx, srv.URL, "token", []byte(`{}`), false)
+	_, err := SendToHomerunContext(ctx, srv.URL, "token", []byte(`{}`), false)
 	if !errors.Is(err, context.Canceled) {
 		t.Errorf("expected a Canceled error, got %v", err)
 	}
@@ -85,14 +85,13 @@ func TestSendToHomerunReusesConnections(t *testing.T) {
 
 	const sends = 10
 	for i := 0; i < sends; i++ {
-		body, resp, err := SendToHomerun(srv.URL, "token", []byte(`{}`), false)
+		resp, err := SendToHomerun(srv.URL, "token", []byte(`{}`), false)
 		if err != nil {
 			t.Fatalf("send %d failed: %v", i, err)
 		}
 		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("send %d: unexpected status %d", i, resp.StatusCode)
 		}
-		_ = body
 	}
 
 	mu.Lock()

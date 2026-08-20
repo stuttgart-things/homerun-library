@@ -38,7 +38,7 @@ var (
 		"AssigneeAddress": "{{ esc .AssigneeAddress }}",
 		"AssigneeName": "{{ esc .AssigneeName }}",
 		"Artifacts": "{{ esc .Artifacts }}",
-		"Url": "{{ esc .Url }}"
+		"Url": "{{ esc .URL }}"
 	}`
 
 	// templateFuncs are available to every template rendered by RenderBody.
@@ -124,6 +124,29 @@ func httpClientFor(insecure bool) *http.Client {
 	return httpClients[insecure]
 }
 
+// Response is what a homerun endpoint answered.
+//
+// Up to v3 the send functions returned the raw *http.Response, whose body they
+// had already read and closed - so a caller that reasonably tried to read
+// Body got nothing, and one that closed it was closing a closed body. It also
+// made bodyclose flag every call site, since the linter cannot see through the
+// wrapper. This carries the parts a caller can actually use.
+type Response struct {
+	// StatusCode is the HTTP status code, e.g. 200.
+	StatusCode int
+	// Status is the HTTP status line, e.g. "200 OK".
+	Status string
+	// Header holds the response headers.
+	Header http.Header
+	// Body is the fully read response body.
+	Body []byte
+}
+
+// OK reports whether the endpoint answered with a 2xx status.
+func (r Response) OK() bool {
+	return r.StatusCode >= 200 && r.StatusCode < 300
+}
+
 // SendToHomerun sends a message to the Homerun service with optional insecure
 // TLS settings.
 //
@@ -131,24 +154,23 @@ func httpClientFor(insecure bool) *http.Client {
 // context.Background(). It is still bounded by DefaultHTTPTimeout. Callers that
 // want to cancel, or that have a request-scoped context to propagate, should
 // use SendToHomerunContext.
-func SendToHomerun(destination, token string, renderedBody []byte, insecure bool) ([]byte, *http.Response, error) {
+//
+// A non-2xx answer is not an error: err reports whether the request could be
+// made and read at all. Check Response.OK for the endpoint's verdict.
+func SendToHomerun(destination, token string, renderedBody []byte, insecure bool) (Response, error) {
 	return SendToHomerunContext(context.Background(), destination, token, renderedBody, insecure)
 }
 
 // SendToHomerunContext sends a message to the Homerun service, bounded by ctx.
-//
-// The returned *http.Response has already had its body read and closed; the
-// body bytes are the first return value. See #117 - the response is returned
-// for its status code and headers only.
 func SendToHomerunContext(
 	ctx context.Context,
 	destination, token string,
 	renderedBody []byte,
 	insecure bool,
-) ([]byte, *http.Response, error) {
+) (Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, destination, bytes.NewBuffer(renderedBody))
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create request: %w", err)
+		return Response{}, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", contentType)
@@ -156,16 +178,22 @@ func SendToHomerunContext(
 
 	resp, err := httpClientFor(insecure).Do(req)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to send request: %w", err)
+		return Response{}, fmt.Errorf("failed to send request: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	answer, err := io.ReadAll(resp.Body)
+	out := Response{
+		StatusCode: resp.StatusCode,
+		Status:     resp.Status,
+		Header:     resp.Header,
+		Body:       answer,
+	}
 	if err != nil {
-		return nil, resp, fmt.Errorf("failed to read response body: %w", err)
+		return out, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	return answer, resp, nil
+	return out, nil
 }
 
 // RenderBody renders templateData with object.

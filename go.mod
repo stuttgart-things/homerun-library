@@ -1,9 +1,9 @@
-module github.com/stuttgart-things/homerun-library/v3
+module github.com/stuttgart-things/homerun-library/v4
 
 go 1.26.6
 
 require (
-	github.com/RediSearch/redisearch-go v1.1.1
+	github.com/RediSearch/redisearch-go/v2 v2.1.1
 	github.com/gomodule/redigo v1.9.3
 	github.com/google/uuid v1.6.0
 	github.com/jedib0t/go-pretty/v6 v6.8.3

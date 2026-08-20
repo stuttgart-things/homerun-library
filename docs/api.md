@@ -18,7 +18,7 @@ type Message struct {
     AssigneeAddress string `json:"assigneeaddress,omitempty"`
     AssigneeName    string `json:"assigneename,omitempty"`
     Artifacts       string `json:"artifacts,omitempty"`
-    Url             string `json:"url,omitempty"`
+    URL             string `json:"url,omitempty"`
 }
 ```
 
@@ -148,11 +148,30 @@ func StoreInRediSearch(message Message, rc RedisConfig) error
 func StoreInRediSearchContext(ctx context.Context, message Message, rc RedisConfig) error
 ```
 
+!!! warning "Deprecated in v4, removal in v5"
+    `StoreInRediSearch` maintains a second, hash-based copy of every message.
+    If you index the Redis JSON documents that `Enqueue` already writes — the
+    `ON JSON` case — you do not need it: those documents are indexed
+    automatically, with the correct event timestamp. See
+    [Migration v3 → v4](migration-v4.md).
+
 `ctx` bounds establishing the connection. `redisearch-go` exposes no
 context-aware command API, so the individual commands are bounded by read and
 write deadlines on the connection pool instead (10s each, dial 5s). Before
 v3.2.0 the pool had **no timeouts at all**, so a Redis that accepted the
 connection and then stopped answering blocked the caller forever.
+
+**Schema.** `timestamp` is indexed as `NUMERIC` (so `@timestamp:[x +inf]` range
+queries work) and carries `Message.Timestamp`, the time the event happened. Up
+to v3 it was `TEXT` and held the moment of *indexing*. A missing or unparseable
+`Message.Timestamp` falls back to the current time and logs a warning.
+
+**Index compatibility.** The function writes hashes. If the index exists and is
+defined `ON JSON`, it returns an error rather than writing a document that would
+be stored but never indexed — which is what v3 did silently.
+
+**Changing the schema requires the index to be recreated** (`FT.DROPINDEX`); the
+library only checks whether the index exists.
 
 **Parameters:**
 
@@ -191,7 +210,7 @@ func SendToHomerun(
     destination, token string,
     renderedBody []byte,
     insecure bool,
-) ([]byte, *http.Response, error)
+) (Response, error)
 ```
 
 **Parameters:**
@@ -201,11 +220,24 @@ func SendToHomerun(
 - `renderedBody` - JSON body to send
 - `insecure` - Skip TLS certificate verification
 
-**Returns:** The response body, the HTTP response, and an error if the request failed.
+**Returns:** A `Response` and an error if the request could not be made or read.
 
-The response body has already been read and closed; the bytes are the first
-return value, and the `*http.Response` is there for its status code and headers
-(see #117).
+```go
+type Response struct {
+    StatusCode int         // e.g. 200
+    Status     string      // e.g. "200 OK"
+    Header     http.Header
+    Body       []byte      // fully read
+}
+
+func (r Response) OK() bool  // 2xx
+```
+
+A non-2xx answer is **not** an error — `err` reports whether the request could be
+made and read at all. Check `resp.OK()` for the endpoint's verdict.
+
+Up to v3 this returned the raw `*http.Response` after already reading and
+closing its body. See [Migration v3 → v4](migration-v4.md).
 
 Bounded by `DefaultHTTPTimeout` (30s) even without a context.
 
@@ -221,7 +253,7 @@ func SendToHomerunContext(
     destination, token string,
     renderedBody []byte,
     insecure bool,
-) ([]byte, *http.Response, error)
+) (Response, error)
 ```
 
 Whichever expires first — the context deadline or `DefaultHTTPTimeout` — ends

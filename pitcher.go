@@ -142,7 +142,7 @@ func setRedisJSON(handler *rejson.Handler, obj interface{}, key string) error {
 //
 //   - Artifacts: Related artifacts (e.g. container image, build artifact)
 //
-//   - Url: Related URL (e.g. link to deployment dashboard)
+//   - URL: Related URL (e.g. link to deployment dashboard)
 //
 //   - rc: Redis connection details (Addr, Port, Password, Stream)
 //

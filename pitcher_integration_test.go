@@ -8,6 +8,7 @@ package homerun
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -306,4 +307,117 @@ func TestRediSearchDoesNotHangOnASilentServer(t *testing.T) {
 	case <-time.After(redisReadTimeout + 10*time.Second):
 		t.Fatal("StoreInRediSearch hung on a server that accepts and never answers")
 	}
+}
+
+// redisSearchTestConfig points at the integration Redis with a unique index so
+// each test owns its own schema.
+func redisSearchTestConfig(index string) RedisConfig {
+	return RedisConfig{
+		Addr:     GetEnv("REDIS_ADDR", "localhost"),
+		Port:     GetEnv("REDIS_PORT", "6379"),
+		Password: GetEnv("REDIS_PASSWORD", ""),
+		Stream:   GetEnv("REDIS_STREAM", "messages"),
+		Index:    index,
+	}
+}
+
+func redisTestClient(t *testing.T) *redis.Client {
+	t.Helper()
+	rc := redisSearchTestConfig("")
+	client := redis.NewClient(&redis.Options{
+		Addr:     rc.Addr + ":" + rc.Port,
+		Password: rc.Password,
+	})
+	t.Cleanup(func() { _ = client.Close() })
+	return client
+}
+
+// The whole point of making timestamp NUMERIC: "@timestamp:[x +inf]" is not
+// expressible against a TEXT field, so this query is the regression test for
+// the schema change.
+func TestRediSearchTimestampIsRangeQueryable(t *testing.T) {
+	ctx := context.Background()
+	index := "rangequery-" + GenerateUUID()
+	rc := redisSearchTestConfig(index)
+	client := redisTestClient(t)
+	t.Cleanup(func() { _ = client.Do(ctx, "FT.DROPINDEX", index, "DD").Err() })
+
+	old := Message{Title: "old", Severity: "info", System: "sys", Timestamp: "2020-01-02T03:04:05Z"}
+	recent := Message{Title: "recent", Severity: "info", System: "sys",
+		Timestamp: time.Now().Add(-time.Hour).UTC().Format(time.RFC3339)}
+
+	require.NoError(t, StoreInRediSearchContext(ctx, old, rc))
+	require.NoError(t, StoreInRediSearchContext(ctx, recent, rc))
+
+	cutoff := time.Now().Add(-24 * time.Hour).Unix()
+	res, err := client.Do(ctx, "FT.SEARCH", index,
+		"@timestamp:["+strconv.FormatInt(cutoff, 10)+" +inf]",
+		"RETURN", "1", "title").Result()
+	require.NoError(t, err, "range query over a NUMERIC timestamp must be expressible")
+
+	rendered := fmt.Sprint(res)
+	assert.Contains(t, rendered, "recent", "the recent message must fall inside the range")
+	assert.NotContains(t, rendered, "old", "the 2020 message must fall outside the range")
+}
+
+// The indexed value must be the event time from the Message, not the moment of
+// indexing - the defect that made every retry and replay wrong.
+func TestRediSearchIndexesTheEventTime(t *testing.T) {
+	ctx := context.Background()
+	index := "eventtime-" + GenerateUUID()
+	rc := redisSearchTestConfig(index)
+	client := redisTestClient(t)
+	t.Cleanup(func() { _ = client.Do(ctx, "FT.DROPINDEX", index, "DD").Err() })
+
+	const stamp = "2020-01-02T03:04:05Z"
+	want := strconv.FormatInt(time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC).Unix(), 10)
+
+	require.NoError(t, StoreInRediSearchContext(ctx,
+		Message{Title: "event", Severity: "info", System: "sys", Timestamp: stamp}, rc))
+
+	res, err := client.Do(ctx, "FT.SEARCH", index, "*", "RETURN", "1", "timestamp").Result()
+	require.NoError(t, err)
+	assert.Contains(t, fmt.Sprint(res), want,
+		"the index must carry the event time %s, not the time of indexing", want)
+}
+
+// An ON JSON index does not index hashes, so up to v3 StoreInRediSearch wrote
+// an orphaned, never-expiring key and returned nil. This is the exact
+// configuration homerun2-omni-pitcher creates at startup.
+func TestStoreInRediSearchRefusesAnIncompatibleIndex(t *testing.T) {
+	ctx := context.Background()
+	index := "jsonindex-" + GenerateUUID()
+	rc := redisSearchTestConfig(index)
+	client := redisTestClient(t)
+	t.Cleanup(func() { _ = client.Do(ctx, "FT.DROPINDEX", index, "DD").Err() })
+
+	// Exactly what omni-pitcher's EnsureIndex issues.
+	require.NoError(t, client.Do(ctx, "FT.CREATE", index, "ON", "JSON", "SCHEMA",
+		"$.severity", "AS", "severity", "TEXT",
+		"$.timestamp", "AS", "timestamp", "TEXT").Err())
+
+	// A system name unique to this test: the document key is
+	// "<RFC3339Nano>-<system>", and the integration Redis is shared with every
+	// other test in the run.
+	system := "refused-" + GenerateUUID()
+
+	err := StoreInRediSearchContext(ctx,
+		Message{Title: "invisible", Severity: "info", System: system,
+			Timestamp: "2020-01-02T03:04:05Z"}, rc)
+
+	require.Error(t, err, "writing hashes into an ON JSON index must not report success")
+	assert.Contains(t, err.Error(), "JSON")
+	assert.Contains(t, err.Error(), "hashes")
+
+	// And no orphan was left behind: up to v3 this call wrote a hash keyed by
+	// "<RFC3339Nano>-<system>" with no TTL, which nothing indexes and nothing
+	// prunes, because retention finds documents through FT.SEARCH.
+	keys, err := client.Keys(ctx, "*-"+system).Result()
+	require.NoError(t, err)
+	assert.Empty(t, keys, "the refused write must not leave an unindexed key behind")
+
+	// num_docs is deliberately not asserted on: this index carries no prefix,
+	// so it also backfills every Redis JSON document the rest of the suite
+	// wrote, asynchronously after FT.CREATE. The key check above is the precise
+	// statement of the claim.
 }
