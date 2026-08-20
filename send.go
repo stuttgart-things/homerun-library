@@ -68,7 +68,7 @@ func jsonEscape(v any) (string, error) {
 
 // SendToHomerun sends a message to the Homerun service with optional insecure TLS settings.
 func SendToHomerun(destination, token string, renderedBody []byte, insecure bool) ([]byte, *http.Response, error) {
-	req, err := http.NewRequest("POST", destination, bytes.NewBuffer(renderedBody))
+	req, err := http.NewRequest(http.MethodPost, destination, bytes.NewBuffer(renderedBody))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create request: %w", err)
 	}

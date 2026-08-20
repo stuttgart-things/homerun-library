@@ -22,6 +22,19 @@ type RedisConfig struct {
 	Index    string // RediSearch index name (used by StoreInRediSearch)
 }
 
+// validateConnection reports whether the fields needed to reach Redis are set.
+// Without this an empty Addr/Port dials ":" and surfaces as a generic
+// "dial tcp: missing address" far from the actual configuration mistake.
+func (rc RedisConfig) validateConnection() error {
+	if rc.Addr == "" {
+		return fmt.Errorf("no redis address configured")
+	}
+	if rc.Port == "" {
+		return fmt.Errorf("no redis port configured")
+	}
+	return nil
+}
+
 type Message struct {
 	Title           string `json:"title,omitempty"`           // if empty: info
 	Message         string `json:"message,omitempty"`         // if empty: title

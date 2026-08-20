@@ -1,3 +1,7 @@
+/*
+Copyright © 2026 Patrick Hermann patrick.hermann@sva.de
+*/
+
 // print_table_test.go
 package homerun
 

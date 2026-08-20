@@ -7,6 +7,7 @@ package homerun
 import (
 	"os"
 	"regexp"
+	"slices"
 	"testing"
 )
 
@@ -34,7 +35,7 @@ func TestGetRandomObject(t *testing.T) {
 		results := make(map[string]bool)
 		for i := 0; i < 100; i++ {
 			result := GetRandomObject(input)
-			if !contains(input, result) {
+			if !slices.Contains(input, result) {
 				t.Errorf("Unexpected result: %v", result)
 			}
 			results[result] = true
@@ -67,44 +68,6 @@ func TestGenerateUUID(t *testing.T) {
 		match, _ := regexp.MatchString(uuidFormat, id)
 		if !match {
 			t.Errorf("Invalid UUID format: %v", id)
-		}
-	})
-}
-
-func TestContains(t *testing.T) {
-	// Test case: Empty slice should return false
-	t.Run("Empty slice should return false", func(t *testing.T) {
-		slice := []string{}
-		value := "test"
-		if result := contains(slice, value); result {
-			t.Errorf("Expected false, got %v", result)
-		}
-	})
-
-	// Test case: Slice contains the target value
-	t.Run("Slice contains the value", func(t *testing.T) {
-		slice := []string{"apple", "banana", "cherry"}
-		value := "banana"
-		if result := contains(slice, value); !result {
-			t.Errorf("Expected true, got %v", result)
-		}
-	})
-
-	// Test case: Slice does not contain the target value
-	t.Run("Slice does not contain the value", func(t *testing.T) {
-		slice := []string{"apple", "banana", "cherry"}
-		value := "orange"
-		if result := contains(slice, value); result {
-			t.Errorf("Expected false, got %v", result)
-		}
-	})
-
-	// Test case: Slice contains multiple instances of the target value
-	t.Run("Slice with multiple instances of the value", func(t *testing.T) {
-		slice := []string{"apple", "banana", "banana", "cherry"}
-		value := "banana"
-		if result := contains(slice, value); !result {
-			t.Errorf("Expected true, got %v", result)
 		}
 	})
 }

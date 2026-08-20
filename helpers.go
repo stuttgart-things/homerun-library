@@ -24,15 +24,6 @@ func GenerateUUID() (randomID string) {
 	return
 }
 
-func contains(slice []string, value string) bool {
-	for _, v := range slice {
-		if v == value {
-			return true
-		}
-	}
-	return false
-}
-
 func EnvVarExists(varName string) bool {
 	if value, exists := os.LookupEnv(varName); !exists || value == "" {
 		return false
