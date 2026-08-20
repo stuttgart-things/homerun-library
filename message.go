@@ -46,7 +46,7 @@ type Message struct {
 	AssigneeAddress string `json:"assigneeaddress,omitempty"` // empty
 	AssigneeName    string `json:"assigneename,omitempty"`    // empty
 	Artifacts       string `json:"artifacts,omitempty"`       // empty
-	Url             string `json:"url,omitempty"`             // empty
+	URL             string `json:"url,omitempty"`             // empty
 }
 
 // NewMessage creates a new Message with the given author, content, severity, and an auto-generated timestamp.

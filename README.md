@@ -4,7 +4,7 @@ Shared Go library module for the **homerun** microservice family.
 
 [![Dagger Static Checks](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-static-checks.yaml/badge.svg)](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-static-checks.yaml)
 [![Dagger Tests](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-tests.yaml/badge.svg)](https://github.com/stuttgart-things/homerun-library/actions/workflows/dagger-tests.yaml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/stuttgart-things/homerun-library/v3.svg)](https://pkg.go.dev/github.com/stuttgart-things/homerun-library/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/stuttgart-things/homerun-library/v4.svg)](https://pkg.go.dev/github.com/stuttgart-things/homerun-library/v4)
 
 ## Features
 
@@ -13,15 +13,20 @@ Shared Go library module for the **homerun** microservice family.
 | **Message** | Core `Message` struct with `NewMessage` constructor, JSON serialization and Redis JSON retrieval |
 | **Pitcher** | Enqueue messages into Redis Streams with Redis JSON storage |
 | **Send** | HTTP POST client for sending messages to homerun endpoints + template rendering |
-| **RediSearch** | Full-text search indexing of messages via RediSearch |
+| **RediSearch** | Full-text search indexing of messages via RediSearch (deprecated, see migration guide) |
 | **Print** | Table rendering utilities (go-pretty) |
 | **Helpers** | UUID generation, random selection, environment variable utilities |
 
 ## Installation
 
 ```bash
-go get github.com/stuttgart-things/homerun-library/v3
+go get github.com/stuttgart-things/homerun-library/v4
 ```
+
+> **Upgrading from v3?** The module path, `Message.Url`, `SendToHomerun`'s return
+> type and the RediSearch schema changed. See
+> [docs/migration-v4.md](docs/migration-v4.md) — the RediSearch change needs the
+> index recreated.
 
 ## Usage
 
@@ -33,7 +38,7 @@ package main
 import (
     "fmt"
     "time"
-    homerun "github.com/stuttgart-things/homerun-library/v3"
+    homerun "github.com/stuttgart-things/homerun-library/v4"
 )
 
 func main() {
@@ -52,14 +57,17 @@ func main() {
         panic(err)
     }
 
-    answer, resp, err := homerun.SendToHomerun(
+    resp, err := homerun.SendToHomerun(
         "https://homerun.example.com/generic", "my-token", []byte(rendered), false,
     )
     if err != nil {
         panic(err)
     }
+    if !resp.OK() {
+        panic("homerun rejected the message: " + resp.Status)
+    }
 
-    fmt.Printf("Status: %s\nBody: %s\n", resp.Status, string(answer))
+    fmt.Printf("Status: %s\nBody: %s\n", resp.Status, string(resp.Body))
 }
 ```
 
@@ -103,9 +111,8 @@ breaks if you do not need one:
 ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 defer cancel()
 
-_, _, err := homerun.SendToHomerunContext(ctx, dest, token, body, false)
+_, err := homerun.SendToHomerunContext(ctx, dest, token, body, false)
 _, _, err = homerun.EnqueueMessageInRedisStreamsContext(ctx, msg, rc)
-err = homerun.StoreInRediSearchContext(ctx, msg, rc)
 ```
 
 Even without a context, HTTP sends are bounded by `homerun.DefaultHTTPTimeout`

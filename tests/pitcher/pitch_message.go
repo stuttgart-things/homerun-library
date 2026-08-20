@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	homerun "github.com/stuttgart-things/homerun-library/v3" // use module path from go.mod
+	homerun "github.com/stuttgart-things/homerun-library/v4" // use module path from go.mod
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 			AssigneeAddress: "ops-team@example.com",
 			AssigneeName:    "Ops Team",
 			Artifacts:       "docker://registry.example.com/xyz:1.0.0",
-			Url:             "http://example.com/deployment/xyz",
+			URL:             "http://example.com/deployment/xyz",
 		},
 		homerun.RedisConfig{
 			Addr:     redisAddr,

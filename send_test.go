@@ -6,7 +6,6 @@ package homerun
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -42,32 +41,36 @@ func TestSendToHomerun(t *testing.T) {
 	renderedBody := []byte(`{"message":"hello"}`)
 
 	// Call the function
-	response, resp, err := SendToHomerun(destination, token, renderedBody, true)
+	resp, err := SendToHomerun(destination, token, renderedBody, true)
 	if err != nil {
 		t.Fatalf("SendToHomerun returned unexpected error: %v", err)
 	}
-	if resp == nil {
-		t.Fatal("Expected non-nil response")
+	if !resp.OK() {
+		t.Errorf("Expected a 2xx answer, got %s", resp.Status)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", resp.StatusCode)
+	}
+	if resp.Header.Get("Content-Type") == "" {
+		t.Error("Expected the response headers to be carried through")
 	}
 
-	fmt.Println(resp.Status)
-
-	// Verify the response
+	// Verify the response body
 	expectedResponse := `{"status":"success"}`
-	if string(response) != expectedResponse {
-		t.Errorf("Expected response %s, got %s", expectedResponse, string(response))
+	if string(resp.Body) != expectedResponse {
+		t.Errorf("Expected response %s, got %s", expectedResponse, string(resp.Body))
 	}
 }
 
 func TestSendToHomerunInvalidURL(t *testing.T) {
-	_, _, err := SendToHomerun("://invalid-url", "token", []byte(`{}`), true)
+	_, err := SendToHomerun("://invalid-url", "token", []byte(`{}`), true)
 	if err == nil {
 		t.Fatal("Expected error for invalid URL, got nil")
 	}
 }
 
 func TestSendToHomerunConnectionRefused(t *testing.T) {
-	_, _, err := SendToHomerun("http://127.0.0.1:1", "token", []byte(`{}`), true)
+	_, err := SendToHomerun("http://127.0.0.1:1", "token", []byte(`{}`), true)
 	if err == nil {
 		t.Fatal("Expected error for connection refused, got nil")
 	}
