@@ -262,7 +262,7 @@ any goroutine.
 homerun.SetLogger(slog.Default())
 ```
 
-Before v3.2.0 the package installed a `pterm` logger at trace level at import
+Up to and including v3.1.8 the package installed a `pterm` logger at trace level at import
 time, so every consumer got ANSI-coloured output on stdout with no way to
 silence, redirect or reformat it. Services that emit structured logs or draw a
 TUI should now install their own logger, or leave it unset to get nothing.
