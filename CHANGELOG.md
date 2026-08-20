@@ -1,3 +1,10 @@
+# [3.2.0](https://github.com/stuttgart-things/homerun-library/compare/v3.1.9...v3.2.0) (2026-08-20)
+
+
+### Features
+
+* context, timeouts and connection reuse in the public API ([#119](https://github.com/stuttgart-things/homerun-library/issues/119)) ([a0e20c6](https://github.com/stuttgart-things/homerun-library/commit/a0e20c6901641e8ffdcc666e6138859deb82d57c))
+
 ## [3.1.9](https://github.com/stuttgart-things/homerun-library/compare/v3.1.8...v3.1.9) (2026-08-20)
 
 
