@@ -1,3 +1,10 @@
+## [3.1.9](https://github.com/stuttgart-things/homerun-library/compare/v3.1.8...v3.1.9) (2026-08-20)
+
+
+### Bug Fixes
+
+* make the library silent by default, sync docs, remove dead code ([#116](https://github.com/stuttgart-things/homerun-library/issues/116)) ([55a5734](https://github.com/stuttgart-things/homerun-library/commit/55a57343a55b7d994d19dd15ff7dc0a5bfaa1736)), closes [#101](https://github.com/stuttgart-things/homerun-library/issues/101) [#104](https://github.com/stuttgart-things/homerun-library/issues/104) [#101](https://github.com/stuttgart-things/homerun-library/issues/101) [#104](https://github.com/stuttgart-things/homerun-library/issues/104) [#106](https://github.com/stuttgart-things/homerun-library/issues/106)
+
 ## [3.1.8](https://github.com/stuttgart-things/homerun-library/compare/v3.1.7...v3.1.8) (2026-08-20)
 
 
