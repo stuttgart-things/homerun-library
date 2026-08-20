@@ -1,3 +1,7 @@
+/*
+Copyright © 2026 Patrick Hermann patrick.hermann@sva.de
+*/
+
 package homerun
 
 import (

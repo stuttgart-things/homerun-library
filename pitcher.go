@@ -1,6 +1,5 @@
 /*
-Copyright © 2024 Patrick Hermann
-patrick.hermann@sva.de
+Copyright © 2024 Patrick Hermann patrick.hermann@sva.de
 */
 
 package homerun
@@ -11,12 +10,7 @@ import (
 
 	rejson "github.com/nitishm/go-rejson/v4"
 	"github.com/nitishm/go-rejson/v4/clients"
-	"github.com/pterm/pterm"
 	"github.com/redis/go-redis/v9"
-)
-
-var (
-	logger = pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
 )
 
 // streamMaxLen caps the Redis stream length on publish. It matches the value
@@ -64,6 +58,10 @@ func (p *Pitcher) Enqueue(
 	streamOverride ...string,
 ) (objectID, streamID string, err error) {
 
+	if err = p.rc.validateConnection(); err != nil {
+		return "", "", err
+	}
+
 	// The ReJSON handler binds a context at setup rather than per call, so it
 	// is built here to carry the caller's context.
 	redisJSONHandler := rejson.NewReJSONHandler()
@@ -88,9 +86,9 @@ func (p *Pitcher) Enqueue(
 		return objectID, streamID, fmt.Errorf("failed to enqueue message in redis stream %s: %w", streamID, err)
 	}
 
-	logger.Info(
-		"MESSAGE WAS ENQUEUED IN REDIS STREAMS",
-		logger.Args(streamID, streamValues),
+	log().Info("message enqueued in redis stream",
+		"stream", streamID,
+		"messageID", objectID,
 	)
 
 	return objectID, streamID, nil
@@ -183,7 +181,7 @@ func EnqueueMessageInRedisStreams(
 	pitcher := NewPitcher(rc)
 	defer func() {
 		if closeErr := pitcher.Close(); closeErr != nil {
-			logger.Warn("failed to close redis client", logger.Args("error", closeErr))
+			log().Warn("failed to close redis client", "error", closeErr)
 		}
 	}()
 
@@ -194,9 +192,8 @@ func EnqueueMessageInRedisStreams(
 // wins, otherwise rc.Stream. Extra override entries are ignored (a warning is logged).
 func resolveStream(rc RedisConfig, streamOverride ...string) string {
 	if len(streamOverride) > 1 {
-		logger.Warn(
-			"EnqueueMessageInRedisStreams received multiple streamOverride values; using the first",
-			logger.Args("count", len(streamOverride)),
+		log().Warn("received multiple streamOverride values, using the first",
+			"count", len(streamOverride),
 		)
 	}
 	if len(streamOverride) > 0 && streamOverride[0] != "" {

@@ -244,6 +244,40 @@ Renders a formatted table to the given writer.
 func PrintTable(output io.Writer, header, row table.Row, style table.Style)
 ```
 
+### Logging
+
+#### `SetLogger`
+
+Installs the logger this package writes to. The library is **silent by default**:
+until a logger is installed, every record is discarded.
+
+```go
+func SetLogger(l *slog.Logger)
+```
+
+Passing `nil` restores the default (discard). Safe to call at any time and from
+any goroutine.
+
+```go
+homerun.SetLogger(slog.Default())
+```
+
+Before v3.2.0 the package installed a `pterm` logger at trace level at import
+time, so every consumer got ANSI-coloured output on stdout with no way to
+silence, redirect or reformat it. Services that emit structured logs or draw a
+TUI should now install their own logger, or leave it unset to get nothing.
+
+The records the library emits:
+
+| Level | Message | Attributes |
+|---|---|---|
+| `Info` | `message enqueued in redis stream` | `stream`, `messageID` |
+| `Info` | `redisearch index created` | `index` |
+| `Info` | `document indexed in redisearch` | `index`, `documentID` |
+| `Warn` | `failed to close redis client` | `error` |
+| `Warn` | `failed to close redisearch connection pool` | `error` |
+| `Warn` | `received multiple streamOverride values, using the first` | `count` |
+
 ## Variables
 
 #### `HomeRunBodyData`

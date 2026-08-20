@@ -1,0 +1,38 @@
+# Checked in so the linter set is explicit and reproducible. Without it, `task
+# lint` and the Dagger static stage run on whatever default set the local
+# golangci-lint version and the go-microservice blueprint happen to ship, which
+# can change under the repo without a commit here.
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    # A library that swallows an error leaves the caller with no way to know -
+    # this is the class of bug #97/#98 were about.
+    - errcheck
+    - errorlint
+    - bodyclose
+    - copyloopvar
+    - misspell
+    - unconvert
+    - usestdlibvars
+  exclusions:
+    rules:
+      # Tests may ignore errors from setup helpers where a failure fails the
+      # test anyway.
+      - path: _test\.go
+        linters:
+          - errcheck
+          # SendToHomerun closes the response body itself before returning it;
+          # bodyclose cannot see through the wrapper and flags every call site.
+          # That the function returns an already-closed *http.Response at all is
+          # a genuine API smell, but fixing it changes the signature (see #106).
+          - bodyclose
+
+formatters:
+  enable:
+    - gofmt
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

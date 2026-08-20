@@ -1,12 +1,16 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 
 	homerun "github.com/stuttgart-things/homerun-library/v3" // use module path from go.mod
 )
 
 func main() {
+
+	// The library is silent by default; a consumer opts in with its own logger.
+	homerun.SetLogger(slog.New(slog.NewTextHandler(os.Stdout, nil)))
 
 	redisAddr := homerun.GetEnv("REDIS_ADDR", "localhost")
 	redisPort := homerun.GetEnv("REDIS_PORT", "6379")

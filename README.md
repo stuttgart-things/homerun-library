@@ -93,6 +93,16 @@ defer pitcher.Close()
 objectID, streamID, err := pitcher.Enqueue(ctx, msg)
 ```
 
+### Logging
+
+The library is silent by default. Install a logger to see what it is doing:
+
+```go
+import "log/slog"
+
+homerun.SetLogger(slog.Default())
+```
+
 ### Utility functions
 
 ```go
@@ -113,24 +123,28 @@ addr := homerun.GetEnv("REDIS_ADDR", "localhost")
 ### Run tests
 
 ```bash
-# Unit tests
+# Unit tests, no Redis required
 go test ./...
 
-# Integration tests via Dagger (starts Redis automatically)
-task run-go-tests
+# Integration tests, needs a running Redis (see docs/development.md)
+go test -tags=integration ./...
 
-# All tests with JSON report
+# Full Dagger suite with a JSON report; starts Redis automatically
 task test-all
 ```
 
 ### Available tasks
 
+Run `task -l` for the authoritative list.
+
 ```bash
-task run-lint-stage    # Lint via Dagger
-task run-go-tests      # Integration tests with Redis
-task test-all          # All tests with report
-task ci                # Full CI (validation + lint)
-task release           # Semantic release
+task test-all              # Full Dagger test suite, fails on a failing test
+task ci-run-static-checks  # Lint + tests via Dagger, fails on a failing test
+task govulncheck           # Reachable Go vulnerabilities, fails if any are found
+task lint                  # golangci-lint
+task check                 # pre-commit hooks
+task release               # Semantic release
+task tag                   # Commit, push & tag the module
 ```
 
 ## Documentation

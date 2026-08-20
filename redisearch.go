@@ -61,6 +61,9 @@ func newRediSearchPool(rc RedisConfig) *redigo.Pool {
 // hiccup terminated the calling process instead of returning an error - while
 // this function's signature promised otherwise.
 func StoreInRediSearch(message Message, rc RedisConfig) error {
+	if err := rc.validateConnection(); err != nil {
+		return err
+	}
 	if rc.Index == "" {
 		return fmt.Errorf("no redisearch index configured")
 	}
@@ -68,7 +71,7 @@ func StoreInRediSearch(message Message, rc RedisConfig) error {
 	connectionPool := newRediSearchPool(rc)
 	defer func() {
 		if err := connectionPool.Close(); err != nil {
-			logger.Warn("failed to close redisearch connection pool", logger.Args("error", err))
+			log().Warn("failed to close redisearch connection pool", "error", err)
 		}
 	}()
 
@@ -83,7 +86,7 @@ func StoreInRediSearch(message Message, rc RedisConfig) error {
 		if err := rediSearchClient.CreateIndex(redisSearchSchema); err != nil {
 			return fmt.Errorf("failed to create redisearch index %s: %w", rc.Index, err)
 		}
-		logger.Info("INDEX DID NOT EXIST, BUT WAS NOW CREATED", logger.Args("", rc.Index))
+		log().Info("redisearch index created", "index", rc.Index)
 	}
 
 	// INDEX THE DOCUMENT
@@ -105,7 +108,7 @@ func StoreInRediSearch(message Message, rc RedisConfig) error {
 		return fmt.Errorf("failed to index document %s: %w", documentID, err)
 	}
 
-	logger.Info("DOCUMENT WAS CREATED ON REDISEARCH", logger.Args("", doc, documentID, doc))
+	log().Info("document indexed in redisearch", "index", rc.Index, "documentID", documentID)
 	return nil
 }
 
