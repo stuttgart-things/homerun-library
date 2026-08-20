@@ -1,3 +1,17 @@
+# [4.0.0](https://github.com/stuttgart-things/homerun-library/compare/v3.2.0...v4.0.0) (2026-08-20)
+
+
+* feat!: v4 - module path, URL initialism, Response type, RediSearch fixes ([#120](https://github.com/stuttgart-things/homerun-library/issues/120)) ([1646f6d](https://github.com/stuttgart-things/homerun-library/commit/1646f6d1fc18d07d58cffae5c7683efb28cb5146)), closes [#103](https://github.com/stuttgart-things/homerun-library/issues/103)
+
+
+### BREAKING CHANGES
+
+* the module path is now
+github.com/stuttgart-things/homerun-library/v4, Message.Url is Message.URL,
+SendToHomerun returns a Response instead of ([]byte, *http.Response), and the
+RediSearch schema requires the index to be recreated (FT.DROPINDEX). See
+docs/migration-v4.md.
+
 # [3.2.0](https://github.com/stuttgart-things/homerun-library/compare/v3.1.9...v3.2.0) (2026-08-20)
 
 
