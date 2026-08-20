@@ -8,9 +8,11 @@ package homerun
 
 import (
 	"context"
+	"net"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	rejson "github.com/nitishm/go-rejson/v4"
 	"github.com/redis/go-redis/v9"
@@ -216,4 +218,92 @@ func connectedClients(t *testing.T, client *redis.Client) int {
 
 	t.Fatalf("connected_clients not found in INFO output:\n%s", info)
 	return 0
+}
+
+// TestContextIsHonouredOnTheRedisPath checks that the context variants added in
+// #99 actually reach Redis. Without a real server a cancelled context and a
+// broken connection are indistinguishable, so these belong here rather than in
+// the hermetic suite.
+func TestContextIsHonouredOnTheRedisPath(t *testing.T) {
+	rc := RedisConfig{
+		Addr:     GetEnv("REDIS_ADDR", "localhost"),
+		Port:     GetEnv("REDIS_PORT", "6379"),
+		Password: GetEnv("REDIS_PASSWORD", ""),
+		Stream:   GetEnv("REDIS_STREAM", "messages"),
+		Index:    GetEnv("REDIS_INDEX", "homerun-integration"),
+	}
+	msg := Message{Title: "ctx", Message: "ctx", Severity: "info", System: "test-system"}
+
+	t.Run("EnqueueMessageInRedisStreamsContext succeeds with a live context", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		objectID, streamID, err := EnqueueMessageInRedisStreamsContext(ctx, msg, rc)
+
+		require.NoError(t, err)
+		assert.Equal(t, rc.Stream, streamID)
+		assert.NotEmpty(t, objectID)
+	})
+
+	t.Run("EnqueueMessageInRedisStreamsContext fails on a cancelled context", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // already cancelled before the call
+
+		_, _, err := EnqueueMessageInRedisStreamsContext(ctx, msg, rc)
+
+		require.Error(t, err, "a cancelled context must not reach Redis")
+		assert.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("StoreInRediSearchContext succeeds with a live context", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		require.NoError(t, StoreInRediSearchContext(ctx, msg, rc))
+	})
+
+	t.Run("StoreInRediSearchContext fails on a cancelled context", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		err := StoreInRediSearchContext(ctx, msg, rc)
+
+		require.Error(t, err, "a cancelled context must not reach Redis")
+	})
+}
+
+// The redigo pool used by the RediSearch path had no timeouts at all, so a
+// Redis that accepts the connection and then stops answering blocked the caller
+// forever. This drives that exact case with a listener that accepts and is
+// silent, and asserts the call returns rather than hangs.
+func TestRediSearchDoesNotHangOnASilentServer(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer func() { _ = listener.Close() }()
+
+	// Accept and then never write a byte.
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+			t.Cleanup(func() { _ = conn.Close() })
+		}
+	}()
+
+	host, port, err := net.SplitHostPort(listener.Addr().String())
+	require.NoError(t, err)
+
+	rc := RedisConfig{Addr: host, Port: port, Index: "homerun-hang-test"}
+
+	done := make(chan error, 1)
+	go func() { done <- StoreInRediSearch(Message{Title: "hang"}, rc) }()
+
+	select {
+	case err := <-done:
+		require.Error(t, err, "expected a timeout error from the silent server")
+	case <-time.After(redisReadTimeout + 10*time.Second):
+		t.Fatal("StoreInRediSearch hung on a server that accepts and never answers")
+	}
 }

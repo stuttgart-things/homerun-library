@@ -121,13 +121,38 @@ connection pool per message.
 
 ---
 
+#### `EnqueueMessageInRedisStreamsContext`
+
+`EnqueueMessageInRedisStreams` bounded by a context, so the publish can be
+cancelled, given a deadline, and carry a request-scoped trace.
+
+```go
+func EnqueueMessageInRedisStreamsContext(
+    ctx context.Context,
+    msg Message,
+    rc RedisConfig,
+    streamOverride ...string,
+) (objectID, streamID string, err error)
+```
+
+The context-free form is exactly this with `context.Background()`.
+
+---
+
 #### `StoreInRediSearch`
 
 Indexes a Message in RediSearch for full-text search capabilities.
 
 ```go
 func StoreInRediSearch(message Message, rc RedisConfig) error
+func StoreInRediSearchContext(ctx context.Context, message Message, rc RedisConfig) error
 ```
+
+`ctx` bounds establishing the connection. `redisearch-go` exposes no
+context-aware command API, so the individual commands are bounded by read and
+write deadlines on the connection pool instead (10s each, dial 5s). Before
+v3.2.0 the pool had **no timeouts at all**, so a Redis that accepted the
+connection and then stopped answering blocked the caller forever.
 
 **Parameters:**
 
@@ -177,6 +202,51 @@ func SendToHomerun(
 - `insecure` - Skip TLS certificate verification
 
 **Returns:** The response body, the HTTP response, and an error if the request failed.
+
+The response body has already been read and closed; the bytes are the first
+return value, and the `*http.Response` is there for its status code and headers
+(see #117).
+
+Bounded by `DefaultHTTPTimeout` (30s) even without a context.
+
+---
+
+#### `SendToHomerunContext`
+
+`SendToHomerun` bounded by a context.
+
+```go
+func SendToHomerunContext(
+    ctx context.Context,
+    destination, token string,
+    renderedBody []byte,
+    insecure bool,
+) ([]byte, *http.Response, error)
+```
+
+Whichever expires first — the context deadline or `DefaultHTTPTimeout` — ends
+the call.
+
+---
+
+#### `SetHTTPClient`
+
+Installs the HTTP client both send functions use, for callers that need their
+own transport, timeout, proxy, instrumentation or retry wrapper.
+
+```go
+func SetHTTPClient(c *http.Client)
+```
+
+Passing `nil` restores the built-in clients. A custom client is used for both
+secure and insecure calls, so the `insecure` argument becomes the caller's
+responsibility. Safe to call from any goroutine.
+
+**Connection reuse.** By default the library keeps one client — and therefore
+one connection pool — per TLS configuration. Up to and including v3.1.9 it built
+a fresh `http.Transport` per call, so every send paid a new TCP and TLS
+handshake and no connection was ever reused. Ten sends now share one connection;
+they used to open ten.
 
 ---
 

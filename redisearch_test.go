@@ -5,6 +5,7 @@ Copyright © 2026 Patrick Hermann patrick.hermann@sva.de
 package homerun
 
 import (
+	"context"
 	"strings"
 	"testing"
 )
@@ -40,7 +41,7 @@ func TestStoreInRediSearchOnUnreachableRedisReturnsError(t *testing.T) {
 func TestNewRediSearchPoolSkipsAuthWithoutPassword(t *testing.T) {
 	// A Redis without requirepass rejects AUTH outright, so sending it
 	// unconditionally made every dial fail against an unauthenticated server.
-	pool := newRediSearchPool(RedisConfig{Addr: "127.0.0.1", Port: "1"})
+	pool := newRediSearchPool(context.Background(), RedisConfig{Addr: "127.0.0.1", Port: "1"})
 	defer func() { _ = pool.Close() }()
 
 	conn := pool.Get()

@@ -5,6 +5,7 @@ Copyright © 2024 Patrick Hermann patrick.hermann@sva.de
 package homerun
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -28,17 +29,37 @@ var (
 		AddField(redisearch.NewTextFieldOptions("url", redisearch.TextFieldOptions{Sortable: true}))
 )
 
-// newRediSearchPool builds a redigo pool for the given configuration.
+// Redis dial and I/O deadlines for the RediSearch path.
+//
+// redigo.Dial applies no timeouts of its own, so before this a Redis that
+// accepted the connection and then stopped answering blocked the caller
+// forever. go-redis, used on the pitcher path, sets comparable defaults itself.
+const (
+	redisDialTimeout  = 5 * time.Second
+	redisReadTimeout  = 10 * time.Second
+	redisWriteTimeout = 10 * time.Second
+)
+
+// newRediSearchPool builds a redigo pool for the given configuration, dialling
+// with ctx so a caller can cancel while a connection is being established.
 //
 // AUTH is only sent when a password is configured: a Redis without
 // requirepass answers "ERR Client sent AUTH, but no password is set" and the
 // dial fails, which is what happened with an unconditional AUTH.
-func newRediSearchPool(rc RedisConfig) *redigo.Pool {
+//
+// Index creation and document indexing themselves go through redisearch-go,
+// which has no context-aware API, so ctx bounds the dial and the deadlines
+// above bound each read and write.
+func newRediSearchPool(ctx context.Context, rc RedisConfig) *redigo.Pool {
 	return &redigo.Pool{
 		MaxIdle:   10,
 		MaxActive: 10,
 		Dial: func() (redigo.Conn, error) {
-			conn, err := redigo.Dial("tcp", rc.Addr+":"+rc.Port)
+			conn, err := redigo.DialContext(ctx, "tcp", rc.Addr+":"+rc.Port,
+				redigo.DialConnectTimeout(redisDialTimeout),
+				redigo.DialReadTimeout(redisReadTimeout),
+				redigo.DialWriteTimeout(redisWriteTimeout),
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -61,6 +82,15 @@ func newRediSearchPool(rc RedisConfig) *redigo.Pool {
 // hiccup terminated the calling process instead of returning an error - while
 // this function's signature promised otherwise.
 func StoreInRediSearch(message Message, rc RedisConfig) error {
+	return StoreInRediSearchContext(context.Background(), message, rc)
+}
+
+// StoreInRediSearchContext is StoreInRediSearch bounded by ctx.
+//
+// ctx bounds establishing the connection; redisearch-go itself exposes no
+// context-aware API, so the individual commands are bounded by the read and
+// write deadlines set on the pool instead.
+func StoreInRediSearchContext(ctx context.Context, message Message, rc RedisConfig) error {
 	if err := rc.validateConnection(); err != nil {
 		return err
 	}
@@ -68,7 +98,7 @@ func StoreInRediSearch(message Message, rc RedisConfig) error {
 		return fmt.Errorf("no redisearch index configured")
 	}
 
-	connectionPool := newRediSearchPool(rc)
+	connectionPool := newRediSearchPool(ctx, rc)
 	defer func() {
 		if err := connectionPool.Close(); err != nil {
 			log().Warn("failed to close redisearch connection pool", "error", err)
