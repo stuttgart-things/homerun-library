@@ -10,7 +10,7 @@ import (
 )
 
 // A library should be silent unless the program embedding it asks for output.
-// Until v3.1.7 this package installed a pterm logger at trace level at import
+// Up to and including v3.1.8 this package installed a pterm logger at trace level at import
 // time, so every consumer got ANSI-coloured decoration on stdout with no way to
 // silence, redirect or reformat it - which corrupts a TUI and makes a JSON log
 // stream unparseable.
