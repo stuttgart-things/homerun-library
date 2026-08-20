@@ -5,10 +5,14 @@ on:
   push:
     branches:
       - 'main'
-      - 'feature/**'
-      - 'fix/**'
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
+    branches:
+      - 'main'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   static-analysis:
@@ -21,12 +25,36 @@ jobs:
       - name: Run Dagger static checks
         uses: dagger/dagger-for-github@v8.4.1
         with:
-          version: "v0.19.6"
+          version: "v0.21.8"
           verb: call
           module: .dagger
           args: >-
             run-static-stage --src . --lint-can-fail=true --go-version=1.26.6 --test=true
             export --path=./static-analysis-report.json
+
+      # Hard gate: main is clean as of v3.1.7 and every finding here would
+      # propagate into all seven homerun2 services that import this library.
+      # The Dagger function still writes the full report before failing.
+      - name: Run govulncheck
+        if: always()
+        uses: dagger/dagger-for-github@v8.4.1
+        with:
+          version: "v0.21.8"
+          verb: call
+          module: .dagger
+          args: >-
+            govulncheck --src . --go-version=1.26.6
+            export --path=./govulncheck-report.txt
+
+      - name: Upload govulncheck report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: govulncheck-report
+          path: ./govulncheck-report.txt
+          # On a failing gate the Dagger call exits before export runs; the
+          # findings are in the step log above, so no artifact is expected.
+          if-no-files-found: ignore
 
       - name: Display static analysis report
         if: always()
@@ -48,6 +76,7 @@ jobs:
       # run-static-stage writes "has_failures" into the report and still exits 0.
       # Without this step a failing `go test` inside the stage goes unnoticed.
       - name: Fail on failing tests
+        if: always()
         run: |
           if [ ! -f ./static-analysis-report.json ]; then
             echo "::error::no static analysis report was produced"

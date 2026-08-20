@@ -48,6 +48,17 @@ tasks:
       FUNCTION: run-static-stage
       REPORT_PATH: /tmp/{{ .PROJECT_NAME }}-static-analysis-report.json
 
+  govulncheck:
+    desc: Report reachable Go vulnerabilities and fail if any are found
+    cmds:
+      - |
+        dagger call -m {{ .CI_MODULE }} govulncheck \
+        --src . --go-version=1.26.6 \
+        export --path={{ .REPORT_PATH }}
+        cat {{ .REPORT_PATH }}
+    vars:
+      REPORT_PATH: /tmp/{{ .PROJECT_NAME }}-govulncheck-report.txt
+
   check:
     desc: "Run pre-commit hooks"
     cmds:
