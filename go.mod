@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/RediSearch/redisearch-go/v2 v2.1.1
-	github.com/gomodule/redigo v1.9.3
+	github.com/gomodule/redigo/v2 v2.0.0
 	github.com/google/uuid v1.6.0
 	github.com/jedib0t/go-pretty/v6 v6.8.3
 	github.com/nitishm/go-rejson/v4 v4.2.0
