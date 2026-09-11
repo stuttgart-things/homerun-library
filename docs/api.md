@@ -338,9 +338,18 @@ func GetEnv(key, fallback string) string
 
 ### Output
 
+#### `PrintTableRows`
+
+Renders a table with any number of rows to the given writer.
+
+```go
+func PrintTableRows(output io.Writer, header table.Row, rows []table.Row, style table.Style)
+```
+
 #### `PrintTable`
 
-Renders a formatted table to the given writer.
+!!! warning "Deprecated, removal in v5"
+    Renders a table with exactly one row. Use `PrintTableRows`.
 
 ```go
 func PrintTable(output io.Writer, header, row table.Row, style table.Style)

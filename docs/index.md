@@ -18,11 +18,11 @@ homerun-library provides common building blocks used across homerun microservice
 ## Quick Start
 
 ```bash
-go get github.com/stuttgart-things/homerun-library/v2
+go get github.com/stuttgart-things/homerun-library/v4
 ```
 
 ```go
-import homerun "github.com/stuttgart-things/homerun-library/v2/v2"
+import homerun "github.com/stuttgart-things/homerun-library/v4"
 ```
 
 See [Usage Examples](usage.md) for detailed code samples.
