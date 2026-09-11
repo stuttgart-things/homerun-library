@@ -14,6 +14,7 @@ homerun-library provides common building blocks used across homerun microservice
 | **RediSearch** | Full-text search indexing of messages via RediSearch |
 | **Startup wait** | Retry Redis or any other dependency at startup with backoff |
 | **Print** | Table rendering utilities using go-pretty |
+| **Routing** | What a message would trigger in which catcher, without publishing it |
 | **Helpers** | UUID generation, random selection, environment variable utilities |
 
 ## Quick Start
@@ -38,7 +39,8 @@ homerun-library
 ├── redisearch.go   # RediSearch indexing
 ├── wait.go         # Startup readiness wait
 ├── helpers.go      # Utility functions
-└── print.go        # Table output
+├── print.go        # Table output
+└── routing/        # Catcher profiles, dry run, severity × system matrix
 ```
 
 All functions operate on the central `Message` struct which represents a notification/event in the homerun system. Redis connection details are passed via the `RedisConfig` struct.

@@ -16,6 +16,7 @@ Shared Go library module for the **homerun** microservice family.
 | **RediSearch** | Full-text search indexing of messages via RediSearch (deprecated, see migration guide) |
 | **Startup wait** | `WaitForRedis` / `WaitForReady`: retry a dependency with backoff instead of crashlooping |
 | **Print** | Table rendering utilities (go-pretty) |
+| **Routing** | `routing` package: what a message would trigger in which catcher, without publishing it |
 | **Helpers** | UUID generation, random selection, environment variable utilities |
 
 ## Installation
@@ -166,6 +167,31 @@ import "log/slog"
 
 homerun.SetLogger(slog.Default())
 ```
+
+### What would a message trigger?
+
+The `routing` package evaluates the catcher profiles (light-catcher effects,
+led-catcher displayRules, notification-catcher outputs) with the catchers' own
+matching rules, and the streams and consumer groups each component runs with:
+
+```go
+import "github.com/stuttgart-things/homerun-library/v4/routing"
+
+light, err := routing.ParseLightProfile(profileYAML)
+// ...
+components := []routing.Component{
+    {Name: "demo-pitcher", Role: routing.RolePitcher, Streams: []string{"homerun"}},
+    {Name: "light-catcher", Role: routing.RoleCatcher, Streams: []string{"messages"},
+        ConsumerGroup: "homerun2-light-catcher", Profile: light},
+}
+
+deliveries := routing.DryRun(components, "messages", msg) // one message
+matrix := routing.BuildMatrix(components, "messages", nil)  // severity × system
+findings := routing.Check(components, []string{"error", "critical"})
+```
+
+It reads nothing itself - no Kubernetes API, no Redis. See
+[docs/routing.md](docs/routing.md).
 
 ### Utility functions
 
