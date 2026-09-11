@@ -1,3 +1,10 @@
+# [4.1.0](https://github.com/stuttgart-things/homerun-library/compare/v4.0.0...v4.1.0) (2026-09-11)
+
+
+### Features
+
+* PrintTableRows for tables with more than one row ([#124](https://github.com/stuttgart-things/homerun-library/issues/124)) ([dbc13a0](https://github.com/stuttgart-things/homerun-library/commit/dbc13a0c7b6b1867a5543cf22d15c9e25cef41c2)), closes [#57](https://github.com/stuttgart-things/homerun-library/issues/57)
+
 # [4.0.0](https://github.com/stuttgart-things/homerun-library/compare/v3.2.0...v4.0.0) (2026-08-20)
 
 
