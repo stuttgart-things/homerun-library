@@ -1,3 +1,10 @@
+# [4.3.0](https://github.com/stuttgart-things/homerun-library/compare/v4.2.0...v4.3.0) (2026-09-11)
+
+
+### Features
+
+* **routing:** evaluate catcher profiles without publishing a message ([#126](https://github.com/stuttgart-things/homerun-library/issues/126)) ([8060871](https://github.com/stuttgart-things/homerun-library/commit/8060871524e0503a9d874c0b60848c30e2dcaea5)), closes [#122](https://github.com/stuttgart-things/homerun-library/issues/122)
+
 # [4.2.0](https://github.com/stuttgart-things/homerun-library/compare/v4.1.0...v4.2.0) (2026-09-11)
 
 
