@@ -294,6 +294,67 @@ func RenderBody(templateData string, object interface{}) (string, error)
 
 ---
 
+### Startup
+
+#### `WaitForReady`
+
+Retries a probe with exponential backoff until it succeeds or the context is
+done.
+
+```go
+func WaitForReady(ctx context.Context, probe func(context.Context) error, perAttemptTimeout time.Duration) error
+```
+
+- Backoff between attempts: 1s, 2s, 4s, 8s, then 16s.
+- Each attempt runs under a child context bounded by `perAttemptTimeout`; a
+  non-positive value leaves it bounded by `ctx` alone.
+- Every failed attempt logs a warning, a success after retries an info record.
+- When `ctx` is done it returns the last probe error wrapped with the attempt
+  count (`after 7 attempts: ...`), usable with `errors.Is`.
+- It never exits the process.
+
+`ctx` must eventually be done: with no deadline and a probe that never succeeds,
+it waits forever.
+
+---
+
+#### `WaitForRedis` / `WaitForRedisContext`
+
+Blocks until Redis answers `PING` or `timeout` expires.
+
+```go
+func WaitForRedis(rc RedisConfig, timeout time.Duration) error
+func WaitForRedisContext(ctx context.Context, rc RedisConfig, timeout time.Duration) error
+```
+
+Each `PING` is bounded by 5s. The context form also stops when `ctx` is done, so
+a service receiving SIGTERM during the wait can shut down instead of sitting out
+the timeout. A `RedisConfig` without `Addr` or `Port` fails at once - retrying
+cannot fix it.
+
+!!! tip "Add a `startupProbe`"
+    A service that waits before opening its HTTP port needs a `startupProbe`
+    covering the timeout. Otherwise a liveness probe of 10s initial delay, 10s
+    period and 3 failures restarts it about 40s into the wait.
+
+---
+
+#### `LoadRedisStartupTimeout` / `ParseRedisStartupTimeout`
+
+```go
+const DefaultRedisStartupTimeout = 120 * time.Second
+
+func LoadRedisStartupTimeout() (time.Duration, error)     // reads REDIS_STARTUP_TIMEOUT
+func ParseRedisStartupTimeout(v string) (time.Duration, error)
+```
+
+`REDIS_STARTUP_TIMEOUT` is a Go duration (`90s`, `2m`). Unset or blank means
+`DefaultRedisStartupTimeout`. An unparsable value - including a bare number like
+`120` - or a non-positive one is an **error**, not a fallback: a typo should
+fail startup loudly rather than quietly restore a budget nobody chose.
+
+---
+
 ### Helpers
 
 #### `GenerateUUID`
@@ -388,6 +449,8 @@ The records the library emits:
 | `Warn` | `failed to close redis client` | `error` |
 | `Warn` | `failed to close redisearch connection pool` | `error` |
 | `Warn` | `received multiple streamOverride values, using the first` | `count` |
+| `Warn` | `readiness probe failed, retrying` | `attempt`, `error`, `next_sleep` |
+| `Info` | `readiness probe succeeded after retries` | `attempts` |
 
 ## Variables
 

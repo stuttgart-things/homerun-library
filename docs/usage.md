@@ -157,3 +157,34 @@ if homerun.EnvVarExists("API_TOKEN") {
     // ...
 }
 ```
+
+## Wait for Redis at Startup
+
+```go
+func main() {
+    homerun.SetLogger(slog.Default()) // to see the retries
+
+    rc := homerun.RedisConfig{Addr: "redis-stack", Port: "6379"}
+
+    timeout, err := homerun.LoadRedisStartupTimeout() // REDIS_STARTUP_TIMEOUT, default 120s
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
+    defer stop()
+
+    if err := homerun.WaitForRedisContext(ctx, rc, timeout); err != nil {
+        log.Fatal(err)
+    }
+    // ... open the HTTP port, start consuming
+}
+```
+
+Any other dependency can be waited for with `WaitForReady` and a probe:
+
+```go
+err := homerun.WaitForReady(ctx, func(ctx context.Context) error {
+    return db.PingContext(ctx)
+}, 5*time.Second)
+```

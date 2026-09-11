@@ -14,6 +14,7 @@ Shared Go library module for the **homerun** microservice family.
 | **Pitcher** | Enqueue messages into Redis Streams with Redis JSON storage |
 | **Send** | HTTP POST client for sending messages to homerun endpoints + template rendering |
 | **RediSearch** | Full-text search indexing of messages via RediSearch (deprecated, see migration guide) |
+| **Startup wait** | `WaitForRedis` / `WaitForReady`: retry a dependency with backoff instead of crashlooping |
 | **Print** | Table rendering utilities (go-pretty) |
 | **Helpers** | UUID generation, random selection, environment variable utilities |
 
@@ -122,6 +123,39 @@ proxy, instrumentation or retry wrapper:
 ```go
 homerun.SetHTTPClient(&http.Client{Timeout: 5 * time.Second})
 ```
+
+### Wait for Redis at startup
+
+A service that dials Redis exactly once at startup crashloops when Redis is
+seconds away from ready - a freshly installed redis-stack took ~70s to answer.
+Wait for it first, bounded by `REDIS_STARTUP_TIMEOUT` (a Go duration, default
+`120s`):
+
+```go
+timeout, err := homerun.LoadRedisStartupTimeout()
+if err != nil {
+    log.Fatal(err) // an unparsable or non-positive value is an error, not a fallback
+}
+if err := homerun.WaitForRedis(rc, timeout); err != nil {
+    log.Fatal(err)
+}
+```
+
+`WaitForRedisContext` also stops on a cancelled context (e.g. SIGTERM), and
+`WaitForReady` retries any probe with the same backoff (1s, 2s, 4s, 8s, capped at
+16s). The library never exits the process; a failed wait is returned.
+
+> **Add a `startupProbe`.** A service that waits before opening its HTTP port
+> needs a `startupProbe` in its Deployment covering `REDIS_STARTUP_TIMEOUT`.
+> Otherwise the liveness probe restarts it in the middle of the wait - with
+> 10s initial delay, 10s period and 3 failures, about 40s in:
+>
+> ```yaml
+> startupProbe:
+>   httpGet: { path: /healthz, port: http }
+>   periodSeconds: 5
+>   failureThreshold: 30   # 150s > REDIS_STARTUP_TIMEOUT of 120s
+> ```
 
 ### Logging
 
