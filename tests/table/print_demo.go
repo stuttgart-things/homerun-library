@@ -11,13 +11,17 @@ import (
 func main() {
 	// Define table
 	header := table.Row{"Name", "Age"}
-	row := table.Row{"Charlie", 28}
+	rows := []table.Row{
+		{"Alice", 30},
+		{"Bob", 4},
+		{"Charlie", 28},
+	}
 	style := table.StyleLight
 
 	var buf bytes.Buffer
 
 	// Call your library function
-	homerun.PrintTable(&buf, header, row, style)
+	homerun.PrintTableRows(&buf, header, rows, style)
 
 	// Print the result
 	fmt.Println(buf.String())

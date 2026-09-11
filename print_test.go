@@ -2,7 +2,6 @@
 Copyright © 2026 Patrick Hermann patrick.hermann@sva.de
 */
 
-// print_table_test.go
 package homerun
 
 import (
@@ -12,21 +11,54 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
+func TestPrintTableRows(t *testing.T) {
+	cases := []struct {
+		name     string
+		rows     []table.Row
+		expected string
+	}{
+		{
+			name: "several rows",
+			rows: []table.Row{{"Alice", 30}, {"Bob", 4}, {"Charlie", 28}},
+			expected: `┌─────────┬─────┐
+│ NAME    │ AGE │
+├─────────┼─────┤
+│ Alice   │  30 │
+│ Bob     │   4 │
+│ Charlie │  28 │
+└─────────┴─────┘
+`,
+		},
+		{
+			name: "no rows",
+			rows: nil,
+			expected: `┌──────┬─────┐
+│ NAME │ AGE │
+├──────┼─────┤
+└──────┴─────┘
+`,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			PrintTableRows(&buf, table.Row{"Name", "Age"}, tc.rows, table.StyleLight)
+
+			if buf.String() != tc.expected {
+				t.Errorf("Output mismatch:\nGot:\n%s\nExpected:\n%s", buf.String(), tc.expected)
+			}
+		})
+	}
+}
+
 func TestPrintTable(t *testing.T) {
-	// Define the header and row for the table
 	header := table.Row{"Name", "Age"}
 	row := table.Row{"Alice", 30}
 
-	// Choose a table style
-	style := table.StyleLight
-
-	// Capture the output
 	var buf bytes.Buffer
+	PrintTable(&buf, header, row, table.StyleLight)
 
-	// Call the function with the buffer as the output
-	PrintTable(&buf, header, row, style)
-
-	// Expected output (modify as needed based on the style chosen)
 	expected := `┌───────┬─────┐
 │ NAME  │ AGE │
 ├───────┼─────┤
@@ -34,7 +66,6 @@ func TestPrintTable(t *testing.T) {
 └───────┴─────┘
 `
 
-	// Compare the captured output to the expected output
 	if buf.String() != expected {
 		t.Errorf("Output mismatch:\nGot:\n%s\nExpected:\n%s", buf.String(), expected)
 	}

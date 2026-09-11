@@ -8,7 +8,7 @@ package main
 import (
     "fmt"
     "time"
-    homerun "github.com/stuttgart-things/homerun-library/v2/v2"
+    homerun "github.com/stuttgart-things/homerun-library/v4"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
         panic(err)
     }
 
-    answer, resp, err := homerun.SendToHomerun(
+    resp, err := homerun.SendToHomerun(
         "https://homerun.example.com/generic",
         "my-auth-token",
         []byte(rendered),
@@ -36,8 +36,11 @@ func main() {
     if err != nil {
         panic(err)
     }
+    if !resp.OK() {
+        panic("homerun rejected the message: " + resp.Status)
+    }
 
-    fmt.Printf("Status: %s\nBody: %s\n", resp.Status, string(answer))
+    fmt.Printf("Status: %s\nBody: %s\n", resp.Status, string(resp.Body))
 }
 ```
 
@@ -55,7 +58,7 @@ package main
 
 import (
     "fmt"
-    homerun "github.com/stuttgart-things/homerun-library/v2/v2"
+    homerun "github.com/stuttgart-things/homerun-library/v4"
 )
 
 func main() {
@@ -88,7 +91,7 @@ func main() {
 ```go
 package main
 
-import homerun "github.com/stuttgart-things/homerun-library/v2/v2"
+import homerun "github.com/stuttgart-things/homerun-library/v4"
 
 func main() {
     err := homerun.StoreInRediSearch(
@@ -121,14 +124,17 @@ package main
 import (
     "os"
     "github.com/jedib0t/go-pretty/v6/table"
-    homerun "github.com/stuttgart-things/homerun-library/v2/v2"
+    homerun "github.com/stuttgart-things/homerun-library/v4"
 )
 
 func main() {
-    homerun.PrintTable(
+    homerun.PrintTableRows(
         os.Stdout,
         table.Row{"Service", "Status", "Version"},
-        table.Row{"homerun-api", "running", "v1.2.3"},
+        []table.Row{
+            {"homerun-api", "running", "v1.2.3"},
+            {"homerun-scout", "running", "v0.9.0"},
+        },
         table.StyleLight,
     )
 }
