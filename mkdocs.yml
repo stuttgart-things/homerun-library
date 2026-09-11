@@ -30,6 +30,7 @@ nav:
   - Home: index.md
   - API Reference: api.md
   - Usage Examples: usage.md
+  - Routing: routing.md
   - Development: development.md
   - Migration v3 → v4: migration-v4.md
 

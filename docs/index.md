@@ -13,6 +13,7 @@ homerun-library provides common building blocks used across homerun microservice
 | **Send** | HTTP POST client for sending messages to homerun endpoints |
 | **RediSearch** | Full-text search indexing of messages via RediSearch |
 | **Print** | Table rendering utilities using go-pretty |
+| **Routing** | What a message would trigger in which catcher, without publishing it |
 | **Helpers** | UUID generation, random selection, environment variable utilities |
 
 ## Quick Start
@@ -36,7 +37,8 @@ homerun-library
 ├── send.go         # HTTP sending, template rendering
 ├── redisearch.go   # RediSearch indexing
 ├── helpers.go      # Utility functions
-└── print.go        # Table output
+├── print.go        # Table output
+└── routing/        # Catcher profiles, dry run, severity × system matrix
 ```
 
 All functions operate on the central `Message` struct which represents a notification/event in the homerun system. Redis connection details are passed via the `RedisConfig` struct.
