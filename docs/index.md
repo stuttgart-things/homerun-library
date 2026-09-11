@@ -12,6 +12,7 @@ homerun-library provides common building blocks used across homerun microservice
 | **Pitcher** | Enqueue messages into Redis Streams with Redis JSON storage |
 | **Send** | HTTP POST client for sending messages to homerun endpoints |
 | **RediSearch** | Full-text search indexing of messages via RediSearch |
+| **Startup wait** | Retry Redis or any other dependency at startup with backoff |
 | **Print** | Table rendering utilities using go-pretty |
 | **Helpers** | UUID generation, random selection, environment variable utilities |
 
@@ -35,6 +36,7 @@ homerun-library
 ├── pitcher.go      # Redis Streams enqueueing
 ├── send.go         # HTTP sending, template rendering
 ├── redisearch.go   # RediSearch indexing
+├── wait.go         # Startup readiness wait
 ├── helpers.go      # Utility functions
 └── print.go        # Table output
 ```
