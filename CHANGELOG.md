@@ -1,3 +1,10 @@
+# [4.2.0](https://github.com/stuttgart-things/homerun-library/compare/v4.1.0...v4.2.0) (2026-09-11)
+
+
+### Features
+
+* WaitForReady, WaitForRedis and REDIS_STARTUP_TIMEOUT in the library ([#125](https://github.com/stuttgart-things/homerun-library/issues/125)) ([0fb642d](https://github.com/stuttgart-things/homerun-library/commit/0fb642d09dd04847bf067843a286513af7e37adb)), closes [#123](https://github.com/stuttgart-things/homerun-library/issues/123)
+
 # [4.1.0](https://github.com/stuttgart-things/homerun-library/compare/v4.0.0...v4.1.0) (2026-09-11)
 
 
