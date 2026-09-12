@@ -5,13 +5,17 @@ Copyright © 2026 Patrick Hermann patrick.hermann@sva.de
 // Package routing answers what a homerun Message would trigger in which
 // component, without publishing it.
 //
-// Two layers decide that, and both are normally invisible:
+// Three layers decide that, and all of them are normally invisible:
 //
-//  1. Which catcher sees a message at all. That is decided by the streams and
+//  1. Which stream a message lands on. A pitcher writing to Redis itself
+//     names its stream. omni-pitcher first fills in the fields a pitch left
+//     empty (PreparePitch) and then picks a stream per message from its
+//     routing file, the one ROUTES_CONFIG points at (ParseStreamRoutes).
+//  2. Which catcher sees a message at all. That is decided by the streams and
 //     the consumer group each component runs with (REDIS_STREAMS /
 //     REDIS_STREAM and CONSUMER_GROUP), not by any profile. A pitcher on a
 //     stream no catcher reads still reports success.
-//  2. What a catcher does with it. That is decided by its profile, and every
+//  3. What a catcher does with it. That is decided by its profile, and every
 //     catcher has its own schema: light-catcher's effects, led-catcher's
 //     displayRules and notification-catcher's outputs.
 //
@@ -32,9 +36,10 @@ Copyright © 2026 Patrick Hermann patrick.hermann@sva.de
 //
 // # Keeping in step with the catchers
 //
-// Each evaluator mirrors a catcher's matching code, named in its doc comment.
-// A change to how a catcher matches has to be made here as well, or the dry
-// run will confidently describe behaviour the catcher no longer has. The Go
-// catchers can import these evaluators instead of keeping their own copy;
-// led-catcher is Python, so its tests are the reference.
+// Each evaluator mirrors a catcher's matching code, and StreamRoutes and
+// PreparePitch mirror omni-pitcher's, named in their doc comments. A change to
+// how a service matches has to be made here as well, or the dry run will
+// confidently describe behaviour the service no longer has. The Go services
+// can import this code instead of keeping their own copy; led-catcher is
+// Python, so its tests are the reference.
 package routing
