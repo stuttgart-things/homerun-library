@@ -1,3 +1,10 @@
+# [4.5.0](https://github.com/stuttgart-things/homerun-library/compare/v4.4.1...v4.5.0) (2026-09-12)
+
+
+### Features
+
+* timestamp_unix in the Redis JSON message for RediSearch time ranges ([#132](https://github.com/stuttgart-things/homerun-library/issues/132)) ([55a37b0](https://github.com/stuttgart-things/homerun-library/commit/55a37b0c97c67d7c005988b88a42972ac2b76d0e)), closes [#131](https://github.com/stuttgart-things/homerun-library/issues/131)
+
 ## [4.4.1](https://github.com/stuttgart-things/homerun-library/compare/v4.4.0...v4.4.1) (2026-09-12)
 
 
