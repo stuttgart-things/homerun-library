@@ -1,3 +1,10 @@
+## [4.4.1](https://github.com/stuttgart-things/homerun-library/compare/v4.4.0...v4.4.1) (2026-09-12)
+
+
+### Bug Fixes
+
+* **routing:** matrix cells show led-catcher texts as templates ([#130](https://github.com/stuttgart-things/homerun-library/issues/130)) ([fbdaebf](https://github.com/stuttgart-things/homerun-library/commit/fbdaebfcf48f09f4b2a77a9caed7617c2a4a0c80))
+
 # [4.4.0](https://github.com/stuttgart-things/homerun-library/compare/v4.3.0...v4.4.0) (2026-09-12)
 
 
