@@ -1,3 +1,10 @@
+# [4.4.0](https://github.com/stuttgart-things/homerun-library/compare/v4.3.0...v4.4.0) (2026-09-12)
+
+
+### Features
+
+* **routing:** omni-pitcher stream routes and /pitch defaults ([#129](https://github.com/stuttgart-things/homerun-library/issues/129)) ([dfda91e](https://github.com/stuttgart-things/homerun-library/commit/dfda91e0b0d9c166e6674474b76f5c17733f01cd)), closes [#128](https://github.com/stuttgart-things/homerun-library/issues/128)
+
 # [4.3.0](https://github.com/stuttgart-things/homerun-library/compare/v4.2.0...v4.3.0) (2026-09-11)
 
 
