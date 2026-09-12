@@ -18,8 +18,9 @@ import (
 //
 // Rules that also look at tags or message text (light-catcher tags,
 // notification-catcher tags_contain and message_contains) do not match such a
-// message, so a cell shows what happens to a message without them. Use DryRun
-// for a concrete message.
+// message, so a cell shows what happens to a message without them. For the
+// same reason a led-catcher text is shown as its template, not rendered. Use
+// DryRun for a concrete message.
 type Matrix struct {
 	Stream string `json:"stream"`
 	// Catchers are the catchers reading the stream, in component order.
@@ -74,14 +75,44 @@ func BuildMatrix(components []Component, stream string, severities []string) Mat
 	for _, system := range m.Systems {
 		for _, severity := range severities {
 			msg := homerun.Message{System: system, Severity: severity}
+			deliveries := DryRun(readers, stream, msg)
+			showLEDTemplates(readers, deliveries)
 			m.Cells = append(m.Cells, Cell{
 				System:     system,
 				Severity:   severity,
-				Deliveries: DryRun(readers, stream, msg),
+				Deliveries: deliveries,
 			})
 		}
 	}
 	return m
+}
+
+// showLEDTemplates puts the text template of each led-catcher rule into a
+// cell instead of its rendering. A cell's message carries only a system and a
+// severity, so the rendering would be "(other): " or "github: " - text
+// led-catcher never displays for a real message.
+func showLEDTemplates(readers []Component, deliveries []Delivery) {
+	for i := range deliveries {
+		k := slices.IndexFunc(readers, func(c Component) bool { return c.Name == deliveries[i].Component })
+		if k < 0 {
+			continue
+		}
+		profile, ok := readers[k].Profile.(*LEDProfile)
+		if !ok || len(deliveries[i].Reactions) == 0 {
+			continue
+		}
+		reactions := slices.Clone(deliveries[i].Reactions)
+		for j, r := range reactions {
+			d, isLED := r.Details.(LEDDisplay)
+			rule := slices.IndexFunc(profile.Rules, func(rule LEDRule) bool { return rule.Name == r.Rule })
+			if !isLED || rule < 0 {
+				continue
+			}
+			d.Text, d.TextRendered = profile.Rules[rule].Text, false
+			reactions[j].Details, reactions[j].Summary = d, ledSummary(d)
+		}
+		deliveries[i].Reactions = reactions
+	}
 }
 
 // FindingKind classifies a Finding.
