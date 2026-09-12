@@ -150,6 +150,36 @@ func TestBuildMatrix(t *testing.T) {
 	}
 }
 
+// A cell's message has no title, so led-catcher's text is shown as its
+// template - not as "(other): ", which it never displays.
+func TestBuildMatrix_LEDTextTemplates(t *testing.T) {
+	components := test1(t)
+	m := BuildMatrix(components, "messages", nil)
+
+	for _, system := range []string{OtherSystem, "github"} {
+		cell, _ := m.Cell(system, "warning")
+		d := delivery(t, cell.Deliveries, "homerun2-led-catcher")
+		if len(d.Reactions) != 1 {
+			t.Fatalf("%s/warning: %+v", system, d)
+		}
+		r := d.Reactions[0]
+		display, ok := r.Details.(LEDDisplay)
+		if want := `LED text "{{ system }}: {{ title }}" in rgb(255,165,0) scrolling`; r.Summary != want || !ok || display.TextRendered {
+			t.Errorf("%s/warning: summary %q, details %+v; want %q, unrendered", system, r.Summary, r.Details, want)
+		}
+	}
+
+	// A dry run of a real message still renders, also after BuildMatrix.
+	for _, d := range DryRun(components, "messages", homerun.Message{System: "github", Severity: "warning", Title: "build slow"}) {
+		if d.Component != "homerun2-led-catcher" {
+			continue
+		}
+		if len(d.Reactions) != 1 || d.Reactions[0].Summary != `LED text "github: build slow" in rgb(255,165,0) scrolling` {
+			t.Errorf("dry run: %+v", d.Reactions)
+		}
+	}
+}
+
 func TestCheck(t *testing.T) {
 	components := test1(t)
 	components = append(components,
