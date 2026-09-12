@@ -232,21 +232,35 @@ func indexKeyType(info []interface{}) (string, error) {
 // best guess available - but it is logged, so a producer that does not set the
 // field is visible rather than silently recorded with the wrong time.
 func eventTimestamp(message Message) int64 {
-	if message.Timestamp == "" {
+	unix, fallback := eventUnix(message)
+	switch fallback {
+	case "":
+	case fallbackNoTimestamp:
 		log().Warn("message has no timestamp, indexing with the current time",
 			"system", message.System, "title", message.Title)
-		return time.Now().Unix()
-	}
-
-	ts, err := time.Parse(time.RFC3339, message.Timestamp)
-	if err != nil {
+	default:
 		log().Warn("message timestamp is not RFC3339, indexing with the current time",
 			"system", message.System, "title", message.Title,
-			"timestamp", message.Timestamp, "error", err)
-		return time.Now().Unix()
+			"timestamp", message.Timestamp, "error", fallback)
 	}
+	return unix
+}
 
-	return ts.Unix()
+// fallbackNoTimestamp is eventUnix's reason for a message without timestamp.
+const fallbackNoTimestamp = "no timestamp"
+
+// eventUnix returns the Unix time message.Timestamp names. When it is missing
+// or not RFC3339 it returns the current time and the reason, so callers decide
+// how loudly to report the fallback.
+func eventUnix(message Message) (unix int64, fallback string) {
+	if message.Timestamp == "" {
+		return time.Now().Unix(), fallbackNoTimestamp
+	}
+	ts, err := time.Parse(time.RFC3339, message.Timestamp)
+	if err != nil {
+		return time.Now().Unix(), err.Error()
+	}
+	return ts.Unix(), ""
 }
 
 // rediSearchIndexExists reports whether the client's index exists. RediSearch

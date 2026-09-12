@@ -121,10 +121,34 @@ It is deprecated either way and scheduled for removal in v5.
 ### Making the JSON index range-queryable
 
 The JSON documents carry `timestamp` as an RFC3339 **string**, which has the same
-range-query limitation. Indexing it as `NUMERIC` is not possible without a
-numeric field in the document. Until then, consumers filtering by time over a
-JSON index have to fetch and compare in Go — which is what
-`homerun2-scout`'s retention does today.
+range-query limitation: RediSearch can only declare it `TEXT`.
+
+Since v4.5.0 `Enqueue` also writes the event time as Unix seconds into every
+document, under `timestamp_unix` (`homerun.RediSearchTimestampField`). Declare it
+`NUMERIC` in the index and time windows become queries:
+
+```
+FT.CREATE messages ON JSON SCHEMA ... $.timestamp_unix AS timestamp_unix NUMERIC SORTABLE
+FT.SEARCH messages "@timestamp_unix:[1757836800 +inf]"
+FT.AGGREGATE messages "@timestamp_unix:[1757836800 1757923200]" GROUPBY 1 @severity REDUCE COUNT 0 AS n
+```
+
+The value is `Message.Timestamp`, the time the event happened; a missing or
+unparseable one falls back to the time of `Enqueue`. The document's other fields
+are unchanged, and readers decoding it into a `Message` ignore the extra field.
+
+An existing index keeps its schema - the services creating it only check that it
+exists. Once they declare the field, recreate it once per environment:
+
+```bash
+redis-cli FT.DROPINDEX messages   # without DD: the documents stay
+# restart the service that creates the index
+```
+
+Documents written before v4.5.0 have no `timestamp_unix`, so range queries do not
+match them until they age out. Until the index declares the field, consumers
+filtering by time have to fetch and compare in Go, which is what
+`homerun2-scout`'s retention does.
 
 ## 5. `redisearch-go` v1 → v2
 

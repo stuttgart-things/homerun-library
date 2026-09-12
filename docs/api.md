@@ -148,6 +148,12 @@ func StoreInRediSearch(message Message, rc RedisConfig) error
 func StoreInRediSearchContext(ctx context.Context, message Message, rc RedisConfig) error
 ```
 
+!!! tip "Time-range queries over the JSON documents"
+    `Enqueue` writes the event time as Unix seconds into every document, under
+    `RediSearchTimestampField` (`timestamp_unix`). Declare it `NUMERIC` in a
+    JSON index to query time windows. See
+    [Migration v3 → v4](migration-v4.md#making-the-json-index-range-queryable).
+
 !!! warning "Deprecated in v4, removal in v5"
     `StoreInRediSearch` maintains a second, hash-based copy of every message.
     If you index the Redis JSON documents that `Enqueue` already writes — the

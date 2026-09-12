@@ -80,6 +80,50 @@ func TestEnqueueMessageInRedisStreamsIntegration(t *testing.T) {
 		assert.Equal(t, msg.Timestamp, stored.Timestamp)
 	})
 
+	t.Run("stored JSON carries the event time as a number", func(t *testing.T) {
+		objectID, _, err := EnqueueMessageInRedisStreams(msg, rc)
+		require.NoError(t, err)
+
+		client := redis.NewClient(&redis.Options{Addr: rc.Addr + ":" + rc.Port, Password: rc.Password})
+		defer func() { _ = client.Close() }()
+
+		raw, err := client.Do(context.Background(), "JSON.GET", objectID, "$."+RediSearchTimestampField).Text()
+		require.NoError(t, err)
+		want := time.Date(2025, 11, 11, 6, 45, 0, 0, time.UTC).Unix()
+		assert.Equal(t, fmt.Sprintf("[%d]", want), raw)
+	})
+
+	t.Run("a NUMERIC index over the field answers time-range queries", func(t *testing.T) {
+		// RESP2: go-redis v9 speaks RESP3 by default, where FT.SEARCH answers a
+		// map instead of the [count, keys...] array read below.
+		client := redis.NewClient(&redis.Options{Addr: rc.Addr + ":" + rc.Port, Password: rc.Password, Protocol: 2})
+		defer func() { _ = client.Close() }()
+		ctx := context.Background()
+
+		system := "range-" + GenerateUUID()[:8]
+		index := "idx-" + system
+		// A prefix per run keeps the index to this test's documents; the
+		// deployed index has none and covers every key.
+		require.NoError(t, client.Do(ctx, "FT.CREATE", index, "ON", "JSON", "PREFIX", "1", "",
+			"SCHEMA",
+			"$.system", "AS", "system", "TAG",
+			"$."+RediSearchTimestampField, "AS", RediSearchTimestampField, "NUMERIC", "SORTABLE",
+		).Err())
+		defer func() { _ = client.Do(ctx, "FT.DROPINDEX", index).Err() }()
+
+		for _, ts := range []string{"2025-11-10T12:00:00Z", "2025-11-11T06:45:00Z", "2025-11-12T08:00:00Z"} {
+			_, _, err := EnqueueMessageInRedisStreams(Message{Title: "range", Message: "m", Timestamp: ts, System: system}, rc)
+			require.NoError(t, err)
+		}
+
+		since := time.Date(2025, 11, 11, 0, 0, 0, 0, time.UTC).Unix()
+		query := fmt.Sprintf("@system:{%s} @%s:[%d +inf]", strings.ReplaceAll(system, "-", "\\-"), RediSearchTimestampField, since)
+		require.Eventually(t, func() bool {
+			res, err := client.Do(ctx, "FT.SEARCH", index, query, "NOCONTENT").Slice()
+			return err == nil && len(res) > 0 && res[0] == int64(2)
+		}, 10*time.Second, 200*time.Millisecond, "expected the two messages since 2025-11-11 for query %s", query)
+	})
+
 	t.Run("unknown object ID is reported as an error", func(t *testing.T) {
 		handler, cleanup := newTestJSONHandler(t, rc)
 		defer cleanup()

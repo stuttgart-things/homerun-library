@@ -13,6 +13,38 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// RediSearchTimestampField names the field Enqueue writes into every Redis JSON
+// document next to the Message fields: the event time as Unix seconds.
+//
+// The document's own `timestamp` is an RFC3339 string, which a RediSearch index
+// can only declare TEXT, and TEXT cannot be range-queried. Declared NUMERIC,
+// this field makes time windows expressible:
+//
+//	FT.CREATE <index> ON JSON SCHEMA $.timestamp_unix AS timestamp_unix NUMERIC SORTABLE ...
+//	FT.SEARCH <index> "@timestamp_unix:[1757836800 +inf]"
+//
+// It carries Message.Timestamp, the time the event happened. A missing or
+// unparseable Message.Timestamp falls back to the time of Enqueue.
+const RediSearchTimestampField = "timestamp_unix"
+
+// storedMessage is the Redis JSON document Enqueue writes: the Message, and its
+// event time as a number. Readers that decode the document into a Message are
+// unaffected; the extra field is ignored.
+type storedMessage struct {
+	Message
+	TimestampUnix int64 `json:"timestamp_unix"`
+}
+
+// newStoredMessage builds the document Enqueue writes for msg.
+func newStoredMessage(msg Message) storedMessage {
+	unix, fallback := eventUnix(msg)
+	if fallback != "" {
+		log().Debug("message timestamp not usable, storing the current time as "+RediSearchTimestampField,
+			"system", msg.System, "title", msg.Title, "reason", fallback)
+	}
+	return storedMessage{Message: msg, TimestampUnix: unix}
+}
+
 // streamMaxLen caps the Redis stream length on publish. It matches the value
 // the previous redisqueue-based implementation used, so stream trimming
 // behaviour is unchanged.
@@ -49,6 +81,7 @@ func (p *Pitcher) Close() error {
 
 // Enqueue stores msg as a Redis JSON object and enqueues its ID into a Redis
 // Stream, returning the generated object ID and the stream it was written to.
+// The document also carries the event time as RediSearchTimestampField.
 //
 // The optional variadic streamOverride, if set and non-empty, publishes to that
 // stream instead of the configured one. Only the first value is used.
@@ -69,7 +102,7 @@ func (p *Pitcher) Enqueue(
 	redisJSONHandler.SetGoRedisClientWithContext(ctx, conn)
 
 	objectID = GenerateUUID() + "-" + msg.System
-	if err = setRedisJSON(redisJSONHandler, msg, objectID); err != nil {
+	if err = setRedisJSON(redisJSONHandler, newStoredMessage(msg), objectID); err != nil {
 		return objectID, "", err
 	}
 
