@@ -36,7 +36,7 @@ tasks:
         dagger call -m {{ .CI_MODULE }} {{ .FUNCTION }} \
         --src {{ .SRC }} \
         --lintCanFail=true \
-        --go-Version=1.26.6 \
+        --go-Version=1.26.9 \
         --test={{ .TEST }} \
         --progress plain -vv \
         export --path={{ .REPORT_PATH }}
@@ -53,7 +53,7 @@ tasks:
     cmds:
       - |
         dagger call -m {{ .CI_MODULE }} govulncheck \
-        --src . --go-version=1.26.6 \
+        --src . --go-version=1.26.9 \
         export --path={{ .REPORT_PATH }}
         cat {{ .REPORT_PATH }}
     vars:
