@@ -1,3 +1,10 @@
+## [4.5.2](https://github.com/stuttgart-things/homerun-library/compare/v4.5.1...v4.5.2) (2026-10-19)
+
+
+### Bug Fixes
+
+* **routing:** light check knows orange and leaves device palettes and effects to the device ([#137](https://github.com/stuttgart-things/homerun-library/issues/137)) ([2df944e](https://github.com/stuttgart-things/homerun-library/commit/2df944ecd2384539e660ead589072d0a60b5c627)), closes [#136](https://github.com/stuttgart-things/homerun-library/issues/136)
+
 ## [4.5.1](https://github.com/stuttgart-things/homerun-library/compare/v4.5.0...v4.5.1) (2026-10-19)
 
 
