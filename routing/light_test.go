@@ -264,10 +264,18 @@ func TestLightEvaluate_Problems(t *testing.T) {
 		name, effect, wantProblem string
 	}{
 		{"valid", "fx: Solid\n    color: red\n    endpoint: http://wled", ""},
-		{"unknown color", "fx: Solid\n    color: purple\n    endpoint: http://wled", `unknown color or palette "purple"`},
-		{"missing color", "fx: Solid\n    endpoint: http://wled", `unknown color or palette ""`},
-		{"unknown fx", "fx: Sparkle\n    color: red\n    endpoint: http://wled", `unknown fx "Sparkle"`},
-		{"color is checked before fx", "fx: Sparkle\n    color: purple\n    endpoint: http://wled", "unknown color"},
+		{"orange is a local color", "fx: Breathe\n    color: orange\n    endpoint: http://wled", ""},
+		// Not local: light-catcher asks the device, so only it can tell.
+		{"device palette as color", "fx: Solid\n    color: Lava\n    endpoint: http://wled", ""},
+		{"explicit device palette", "fx: Solid\n    palette: Lava\n    endpoint: http://wled", ""},
+		{"local color on a device palette", "fx: Solid\n    color: red\n    palette: Lava\n    endpoint: http://wled", ""},
+		{"device effect", "fx: Sparkle\n    color: red\n    endpoint: http://wled", ""},
+		{"effect ID", "fx: \"38\"\n    color: red\n    endpoint: http://wled", ""},
+		{"neither color nor palette", "fx: Solid\n    endpoint: http://wled", "neither color nor palette"},
+		{"unknown color next to a palette", "fx: Solid\n    color: purple\n    palette: Lava\n    endpoint: http://wled", `unknown color "purple" next to palette "Lava"`},
+		{"no fx", "color: red\n    endpoint: http://wled", "no fx"},
+		{"negative effect ID", "fx: \"-1\"\n    color: red\n    endpoint: http://wled", `negative fx "-1"`},
+		{"look is checked before fx", "color: purple\n    palette: Lava\n    endpoint: http://wled", "unknown color"},
 		{"no endpoint", "fx: Solid\n    color: red", "no endpoint"},
 	}
 	for _, tc := range cases {
@@ -291,5 +299,27 @@ func TestLightSystems(t *testing.T) {
 	p := mustLight(t, lightTestProfile+"  more:\n    systems: [github, ci]\n")
 	if got := strings.Join(p.Systems(), ","); got != "gitlab,github,ci" {
 		t.Errorf("Systems() = %s", got)
+	}
+}
+
+func TestLightEvaluate_Summary(t *testing.T) {
+	cases := []struct {
+		name, effect, want string
+	}{
+		{"local", "fx: Breathe\n    color: orange", "WLED Breathe in orange for 8s on http://wled"},
+		{"fallback fx is case-insensitive", "fx: breathe\n    color: red", "WLED breathe in red for 8s on http://wled"},
+		{"device palette as color", "fx: Solid\n    color: Lava", "WLED Solid in Lava (device palette) for 8s on http://wled"},
+		{"explicit device palette", "fx: Solid\n    palette: Lava", "WLED Solid in Lava (device palette) for 8s on http://wled"},
+		{"local color on a device palette", "fx: Solid\n    color: red\n    palette: Lava", "WLED Solid in red on device palette Lava for 8s on http://wled"},
+		{"device effect", "fx: Sparkle\n    color: red", "WLED Sparkle (device effect) in red for 8s on http://wled"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := mustLight(t, "effects:\n  e:\n    systems: [\"*\"]\n    severity: [info]\n    duration: 8\n    endpoint: http://wled\n    "+tc.effect+"\n")
+			r := p.Evaluate(homerun.Message{System: "s", Severity: "info"})
+			if len(r) != 1 || r[0].Summary != tc.want {
+				t.Errorf("summary = %+v, want %q", r, tc.want)
+			}
+		})
 	}
 }

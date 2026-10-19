@@ -1,6 +1,6 @@
 module github.com/stuttgart-things/homerun-library/v4
 
-go 1.26.6
+go 1.26.9
 
 require (
 	github.com/RediSearch/redisearch-go/v2 v2.1.1

@@ -12,7 +12,7 @@ func (m *Dagger) RunStaticStage(
 	// +default="500s"
 	lintTimeout string,
 	// +optional
-	// +default="1.26.6"
+	// +default="1.26.9"
 	goVersion string,
 	// +optional
 	// +default="linux"

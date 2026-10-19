@@ -19,7 +19,7 @@ func (m *Dagger) Govulncheck(
 	ctx context.Context,
 	src *dagger.Directory,
 	// +optional
-	// +default="1.26.6"
+	// +default="1.26.9"
 	goVersion string,
 	// +optional
 	// +default="latest"
