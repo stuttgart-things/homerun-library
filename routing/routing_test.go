@@ -185,7 +185,7 @@ func TestCheck(t *testing.T) {
 	components = append(components,
 		Component{Name: "second-core", Role: RoleCatcher, Streams: []string{"messages"}, ConsumerGroup: "homerun2-core-catcher"},
 		Component{Name: "broken-light", Role: RoleCatcher, Streams: []string{"messages"},
-			Profile: mustLight(t, "effects:\n  e:\n    systems: [\"*\"]\n    severity: [error, critical]\n    tags: [x]\n    fx: Sparkle\n    color: red\n    endpoint: http://w\n")},
+			Profile: mustLight(t, "effects:\n  e:\n    systems: [\"*\"]\n    severity: [error, critical]\n    tags: [x]\n    fx: Solid\n    color: purple\n    palette: Lava\n    endpoint: http://w\n")},
 	)
 
 	findings := Check(components, []string{"error", "critical"})
@@ -213,7 +213,7 @@ func TestCheck(t *testing.T) {
 	}
 
 	// Found although no plain message reaches the rule.
-	if f := byKind[FindingBrokenRule]; len(f) != 1 || f[0].Component != "broken-light" || f[0].Rule != "e" || !strings.Contains(f[0].Message, "Sparkle") {
+	if f := byKind[FindingBrokenRule]; len(f) != 1 || f[0].Component != "broken-light" || f[0].Rule != "e" || !strings.Contains(f[0].Message, "purple") {
 		t.Errorf("broken-rule: %+v", f)
 	}
 }
