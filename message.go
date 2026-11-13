@@ -35,6 +35,12 @@ func (rc RedisConfig) validateConnection() error {
 	return nil
 }
 
+// Message is a homerun notification or event.
+//
+// The string fields are the display side: what humans and the outputs (Teams,
+// LED, sound) show. Payload is the machine side: the structured source object
+// a pitcher carries along, for consumers that archive it or react to its
+// fields instead of parsing display text.
 type Message struct {
 	Title           string `json:"title,omitempty"`           // if empty: info
 	Message         string `json:"message,omitempty"`         // if empty: title
@@ -47,6 +53,74 @@ type Message struct {
 	AssigneeName    string `json:"assigneename,omitempty"`    // empty
 	Artifacts       string `json:"artifacts,omitempty"`       // empty
 	URL             string `json:"url,omitempty"`             // empty
+
+	// Payload is the structured source object as JSON, e.g. a Kubernetes
+	// object or a webhook body. Enqueue stores it as a nested JSON value in
+	// the Redis JSON document, not as a string. Optional; at most
+	// MaxPayloadSize bytes. Set it with SetPayload.
+	Payload RawJSON `json:"payload,omitempty"`
+}
+
+// RawJSON is an encoded JSON value that is marshalled as is, like
+// json.RawMessage. It is a string rather than a byte slice so Message stays
+// comparable with ==, which the services that use the library rely on.
+type RawJSON string
+
+// MarshalJSON returns r unchanged; an empty r is null.
+func (r RawJSON) MarshalJSON() ([]byte, error) {
+	if r == "" {
+		return []byte("null"), nil
+	}
+	return []byte(r), nil
+}
+
+// UnmarshalJSON stores the encoded value as is; null is empty.
+func (r *RawJSON) UnmarshalJSON(b []byte) error {
+	if string(b) == "null" {
+		*r = ""
+		return nil
+	}
+	*r = RawJSON(b)
+	return nil
+}
+
+// MaxPayloadSize is the largest Payload Enqueue and SetPayload accept, in
+// bytes. Every message is kept as a Redis JSON document until retention prunes
+// it, so a payload is meant to be one object, not a dump. Strip noise such as
+// metadata.managedFields of Kubernetes objects before setting it.
+const MaxPayloadSize = 256 * 1024
+
+// SetPayload marshals v into m.Payload. A nil v clears it. It fails if v
+// cannot be marshalled or the result exceeds MaxPayloadSize.
+func (m *Message) SetPayload(v any) error {
+	if v == nil {
+		m.Payload = ""
+		return nil
+	}
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return fmt.Errorf("marshaling payload: %w", err)
+	}
+	if err := checkPayload(raw); err != nil {
+		return err
+	}
+	m.Payload = RawJSON(raw)
+	return nil
+}
+
+// checkPayload reports whether raw is usable as a Payload: empty, or valid
+// JSON of at most MaxPayloadSize bytes.
+func checkPayload[T ~string | ~[]byte](raw T) error {
+	if len(raw) == 0 {
+		return nil
+	}
+	if len(raw) > MaxPayloadSize {
+		return fmt.Errorf("payload is %d bytes, more than MaxPayloadSize (%d)", len(raw), MaxPayloadSize)
+	}
+	if !json.Valid([]byte(raw)) {
+		return fmt.Errorf("payload is not valid JSON")
+	}
+	return nil
 }
 
 // NewMessage creates a new Message with the given author, content, severity, and an auto-generated timestamp.

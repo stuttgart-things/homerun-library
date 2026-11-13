@@ -93,6 +93,29 @@ func TestEnqueueMessageInRedisStreamsIntegration(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf("[%d]", want), raw)
 	})
 
+	t.Run("payload is stored as nested JSON and round-trips", func(t *testing.T) {
+		withPayload := msg
+		require.NoError(t, withPayload.SetPayload(map[string]any{"kind": "Result", "spec": map[string]any{"errors": 2}}))
+
+		objectID, _, err := EnqueueMessageInRedisStreams(withPayload, rc)
+		require.NoError(t, err)
+
+		client := redis.NewClient(&redis.Options{Addr: rc.Addr + ":" + rc.Port, Password: rc.Password})
+		defer func() { _ = client.Close() }()
+
+		// A JSON path into the payload resolves only if it is a nested
+		// value; inside a string it would find nothing.
+		raw, err := client.Do(context.Background(), "JSON.GET", objectID, "$.payload.spec.errors").Text()
+		require.NoError(t, err)
+		assert.Equal(t, "[2]", raw)
+
+		handler, cleanup := newTestJSONHandler(t, rc)
+		defer cleanup()
+		stored, err := GetMessageJSON(objectID, handler)
+		require.NoError(t, err)
+		assert.JSONEq(t, string(withPayload.Payload), string(stored.Payload))
+	})
+
 	t.Run("a NUMERIC index over the field answers time-range queries", func(t *testing.T) {
 		// RESP2: go-redis v9 speaks RESP3 by default, where FT.SEARCH answers a
 		// map instead of the [count, keys...] array read below.
