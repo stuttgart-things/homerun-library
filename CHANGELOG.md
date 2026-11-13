@@ -1,3 +1,10 @@
+# [4.6.0](https://github.com/stuttgart-things/homerun-library/compare/v4.5.2...v4.6.0) (2026-11-13)
+
+
+### Features
+
+* structured payload field in Message ([#144](https://github.com/stuttgart-things/homerun-library/issues/144)) ([9b4f951](https://github.com/stuttgart-things/homerun-library/commit/9b4f951698256584d680bd0ffa0af194be401ed6)), closes [#143](https://github.com/stuttgart-things/homerun-library/issues/143)
+
 ## [4.5.2](https://github.com/stuttgart-things/homerun-library/compare/v4.5.1...v4.5.2) (2026-10-19)
 
 
