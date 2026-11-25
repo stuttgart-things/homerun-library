@@ -1,3 +1,10 @@
+## [4.6.1](https://github.com/stuttgart-things/homerun-library/compare/v4.6.0...v4.6.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/jedib0t/go-pretty/v6 to v6.9.3 ([#142](https://github.com/stuttgart-things/homerun-library/issues/142)) ([58b64e5](https://github.com/stuttgart-things/homerun-library/commit/58b64e572dc48ae9ffc4d10461bfc01f757ddd29))
+
 # [4.6.0](https://github.com/stuttgart-things/homerun-library/compare/v4.5.2...v4.6.0) (2026-11-13)
 
 
