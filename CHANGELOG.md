@@ -1,3 +1,11 @@
+## [4.7.1](https://github.com/stuttgart-things/homerun-library/compare/v4.7.0...v4.7.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/redis/go-redis/v9 to v9.24.0 ([#148](https://github.com/stuttgart-things/homerun-library/issues/148)) ([7126952](https://github.com/stuttgart-things/homerun-library/commit/7126952d0fdcf59b7fa5c8419bf7d86c84e922bb))
+* **deps:** update module go.yaml.in/yaml/v3 to v3.0.6 ([#140](https://github.com/stuttgart-things/homerun-library/issues/140)) ([03a8d5a](https://github.com/stuttgart-things/homerun-library/commit/03a8d5a6b740d843da81f6b4e4ddbdc11bd8cfac))
+
 # [4.7.0](https://github.com/stuttgart-things/homerun-library/compare/v4.6.1...v4.7.0) (2026-11-25)
 
 
