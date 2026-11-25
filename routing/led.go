@@ -41,9 +41,19 @@ type LEDRule struct {
 	Kind     string   `json:"kind"`
 	Text     string   `json:"text,omitempty"`
 	Image    string   `json:"image,omitempty"`
+	// Tags must each equal one whole, trimmed element of the message's
+	// comma-separated tags. Empty: no filter.
+	Tags     []string `json:"tags,omitempty"`
 	Font     string   `json:"font"`
 	Duration float64  `json:"duration"`
-	Hold     bool     `json:"hold"`
+	// Hold is never set on an ambient rule: led-catcher drops it there.
+	Hold bool `json:"hold"`
+	// Overlay plays this display first and then the same message as the next
+	// matching rule draws it (LEDDisplay.Then).
+	Overlay bool `json:"overlay,omitempty"`
+	// Ambient is programme content (homerun2-led-catcher#161): shown only on
+	// a free panel, dropped when it is busy, cut short by any other display.
+	Ambient bool `json:"ambient,omitempty"`
 }
 
 // LEDDisplay is what led-catcher shows for a matched message.
@@ -55,6 +65,10 @@ type LEDDisplay struct {
 	// statements.
 	TextRendered bool   `json:"textRendered"`
 	Color        [3]int `json:"color"`
+	// Then is what an overlay gives way to: the next rule that matches the
+	// same message. Nil when nothing matches after the overlay; never set on
+	// Then itself, which led-catcher does not chain.
+	Then *LEDDisplay `json:"then,omitempty"`
 }
 
 // LEDProfile is a parsed homerun2-led-catcher profile (the profile.yaml in
@@ -70,12 +84,16 @@ type LEDProfile struct {
 // ParseLEDProfile parses a led-catcher profile the way led-catcher's
 // load_profile reads it: missing fields take led-catcher's defaults (kind
 // text, font 6x10.bdf, duration 5), severities are lower-cased, a color that
-// is not a list of three integers is ignored, and a rule name given twice
-// keeps its first position with its last definition.
+// is not a list of three integers is ignored, a rule name given twice keeps
+// its first position with its last definition, and an ambient rule is never
+// held.
 //
 // led-catcher parses YAML 1.1 (PyYAML), this parses YAML 1.2. The two
-// disagree on unquoted yes/no/on/off, which only hold takes as a value, and
-// hold reads them as PyYAML does.
+// disagree on unquoted yes/no/on/off, which only the boolean options (hold,
+// overlay, ambient) take as a value, and those read them as PyYAML does.
+//
+// Not read: quietHours (Evaluate has no clock) and strip_prefix (card titles
+// only).
 func ParseLEDProfile(data []byte) (*LEDProfile, error) {
 	p := &LEDProfile{Colors: make(map[string][3]int, len(ledDefaultColors))}
 	for k, v := range ledDefaultColors {
@@ -159,13 +177,22 @@ func parseLEDRule(name string, n *yaml.Node) (LEDRule, error) {
 			if err != nil || value.Kind != yaml.ScalarNode {
 				err = fmt.Errorf("duration %q is not a number", value.Value)
 			}
+		case "tags":
+			err = decodeList(value, &rule.Tags)
 		case "hold":
 			rule.Hold = pythonTruthy(value)
+		case "overlay":
+			rule.Overlay = pythonTruthy(value)
+		case "ambient":
+			rule.Ambient = pythonTruthy(value)
 		}
 		if err != nil {
 			return rule, fmt.Errorf("%s: %w", key, err)
 		}
 	}
+	// led-catcher: an ambient display held would sit on the panel's free
+	// moments for good.
+	rule.Hold = rule.Hold && !rule.Ambient
 	return rule, nil
 }
 
@@ -211,15 +238,20 @@ func pythonTruthy(n *yaml.Node) bool {
 
 // Evaluate implements Profile, mirroring led-catcher's match_rule: the first
 // rule in document order whose systems contain the message's system
-// (case-insensitive, or "*") and whose severity list contains its severity
-// (case-insensitive; an empty list matches any) wins.
+// (case-insensitive, or "*"), whose severity list contains its severity
+// (case-insensitive; an empty list matches any) and whose tags are all among
+// the message's tags wins. A rule whose image template renders empty does
+// not match: the message named no picture. An overlay rule carries the next
+// rule that matches as Then.
 //
 // led-catcher reads a message without a system as system "unknown" and one
-// without a severity as "info", and so does this.
+// without a severity as "info", and so does this. Quiet hours are not
+// applied.
 func (p *LEDProfile) Evaluate(msg homerun.Message) []Reaction {
 	system := strings.ToLower(orDefault(msg.System, "unknown"))
 	severity := strings.ToLower(orDefault(msg.Severity, "info"))
 
+	var first *LEDDisplay
 	for _, rule := range p.Rules {
 		systemMatch := slices.ContainsFunc(rule.Systems, func(s string) bool {
 			return s == "*" || strings.ToLower(s) == system
@@ -230,15 +262,39 @@ func (p *LEDProfile) Evaluate(msg homerun.Message) []Reaction {
 		if len(rule.Severity) > 0 && !slices.Contains(rule.Severity, severity) {
 			continue
 		}
+		if !lightTagsMatch(rule.Tags, msg.Tags) {
+			continue
+		}
 
 		d := LEDDisplay{LEDRule: rule}
+		if strings.Contains(rule.Image, "{") {
+			image, rendered := renderLEDText(rule.Image, msg)
+			if rendered {
+				// led-catcher: a picture the message was to name and did not.
+				if d.Image = strings.TrimSpace(image); d.Image == "" {
+					continue
+				}
+			}
+		}
 		d.Text, d.TextRendered = renderLEDText(rule.Text, msg)
+		d.Color, _ = p.color(severity)
 
-		var problem string
-		d.Color, problem = p.color(severity)
-		return []Reaction{{Rule: rule.Name, Summary: ledSummary(d), Problem: problem, Details: d}}
+		if first != nil {
+			first.Then = &d // led-catcher: the follow-up gets no Then of its own
+			break
+		}
+		first = &d
+		if !rule.Overlay {
+			break
+		}
 	}
-	return nil
+	if first == nil {
+		return nil
+	}
+	// The color depends on the message's severity, not the rule: an overlay
+	// and what follows it share it, and so does the problem.
+	_, problem := p.color(severity)
+	return []Reaction{{Rule: first.Name, Summary: ledSummary(*first), Problem: problem, Details: *first}}
 }
 
 // color returns the color led-catcher renders severity in, and a problem when
@@ -267,6 +323,18 @@ func (p *LEDProfile) problems() []Reaction {
 }
 
 func ledSummary(d LEDDisplay) string {
+	s := ledDisplaySummary(d)
+	if d.Overlay {
+		if d.Then != nil {
+			s += ", then " + ledDisplaySummary(*d.Then)
+		} else {
+			s += ", with nothing after it"
+		}
+	}
+	return s
+}
+
+func ledDisplaySummary(d LEDDisplay) string {
 	var what string
 	switch d.Kind {
 	case "image", "gif":
@@ -278,36 +346,45 @@ func ledSummary(d LEDDisplay) string {
 	// whatever the duration (led-catcher docs/profile-reference.md).
 	var how string
 	switch {
-	case d.Hold && (d.Kind == "static" || d.Kind == "image" || d.Kind == "score"):
+	case d.Hold && (d.Kind == "static" || d.Kind == "image" || d.Kind == "score" || d.Kind == "card"):
 		how = "until replaced"
 	case d.Kind == "text" || d.Kind == "ticker":
 		how = "scrolling"
 	default:
 		how = fmt.Sprintf("for %gs", d.Duration)
 	}
-	return fmt.Sprintf("LED %s in rgb(%d,%d,%d) %s", what, d.Color[0], d.Color[1], d.Color[2], how)
+	s := fmt.Sprintf("LED %s in rgb(%d,%d,%d) %s", what, d.Color[0], d.Color[1], d.Color[2], how)
+	switch {
+	case d.Overlay:
+		s = "LED overlay " + strings.TrimPrefix(s, "LED ")
+	case d.Ambient:
+		s += ", ambient: only on a free panel, cut short by any other display"
+	}
+	return s
 }
 
 // ledTemplateTag matches one Jinja2 tag of any kind.
 var ledTemplateTag = regexp.MustCompile(`\{\{.*?\}\}|\{%.*?%\}|\{#.*?#\}`)
 
-// ledVariable matches a tag that is a bare variable, e.g. {{ title }}.
-var ledVariable = regexp.MustCompile(`^\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}$`)
+// ledVariable matches a tag that is a bare variable, e.g. {{ title }}, or a
+// call of led-catcher's tag() with a literal name, e.g. {{ tag('figure') }}.
+var ledVariable = regexp.MustCompile(`^\{\{\s*(?:([A-Za-z_][A-Za-z0-9_]*)|tag\(\s*(?:'([^']*)'|"([^"]*)")\s*\))\s*\}\}$`)
 
-// renderLEDText renders the plain {{ variable }} substitutions of a
-// led-catcher text template with the variables led-catcher passes. A template
-// using anything else - filters, expressions, statements - is returned
-// unrendered with false: a half-rendered text would look like the real output
-// and not be.
+// renderLEDText renders the plain {{ variable }} and {{ tag('name') }}
+// substitutions of a led-catcher template with the variables led-catcher
+// passes. A template using anything else - filters, expressions, statements -
+// is returned unrendered with false: a half-rendered text would look like the
+// real output and not be.
 func renderLEDText(text string, msg homerun.Message) (string, bool) {
 	vars := map[string]string{
-		"title":    msg.Title,
-		"message":  msg.Message,
-		"severity": orDefault(msg.Severity, "info"),
-		"system":   orDefault(msg.System, "unknown"),
-		"author":   orDefault(msg.Author, "unknown"),
-		"tags":     msg.Tags,
-		"url":      msg.URL,
+		"title":     msg.Title,
+		"message":   msg.Message,
+		"severity":  orDefault(msg.Severity, "info"),
+		"system":    orDefault(msg.System, "unknown"),
+		"author":    orDefault(msg.Author, "unknown"),
+		"tags":      msg.Tags,
+		"url":       msg.URL,
+		"timestamp": msg.Timestamp,
 	}
 
 	// Jinja2 drops a single trailing newline of the template by default.
@@ -319,6 +396,9 @@ func renderLEDText(text string, msg homerun.Message) (string, bool) {
 		if m == nil {
 			rendered = false
 			return tag
+		}
+		if m[1] == "" {
+			return ledTagValue(msg.Tags, m[2]+m[3])
 		}
 		return vars[m[1]] // Jinja2 renders an undefined variable as ""
 	})
@@ -356,4 +436,16 @@ func orDefault(s, def string) string {
 		return def
 	}
 	return s
+}
+
+// ledTagValue mirrors led-catcher's tag_value: the value of name=value among
+// the message's comma-separated tags, or "".
+func ledTagValue(tags, name string) string {
+	for _, element := range strings.Split(tags, ",") {
+		key, value, ok := strings.Cut(strings.TrimSpace(element), "=")
+		if ok && key == name {
+			return value
+		}
+	}
+	return ""
 }

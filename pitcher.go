@@ -94,6 +94,9 @@ func (p *Pitcher) Enqueue(
 	if err = p.rc.validateConnection(); err != nil {
 		return "", "", err
 	}
+	if err = checkPayload(msg.Payload); err != nil {
+		return "", "", err
+	}
 
 	// The ReJSON handler binds a context at setup rather than per call, so it
 	// is built here to carry the caller's context.

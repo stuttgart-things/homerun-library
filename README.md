@@ -171,7 +171,7 @@ homerun.SetLogger(slog.Default())
 ### What would a message trigger?
 
 The `routing` package evaluates the catcher profiles (light-catcher effects,
-led-catcher displayRules, notification-catcher outputs) with the catchers' own
+led-catcher displayRules, sound-catcher rules, notification-catcher outputs) with the catchers' own
 matching rules, and the streams and consumer groups each component runs with:
 
 ```go

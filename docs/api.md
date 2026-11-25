@@ -19,8 +19,58 @@ type Message struct {
     AssigneeName    string `json:"assigneename,omitempty"`
     Artifacts       string `json:"artifacts,omitempty"`
     URL             string `json:"url,omitempty"`
+    Payload         RawJSON `json:"payload,omitempty"`
 }
 ```
+
+The string fields are the display side: what humans and the outputs (Teams,
+LED, sound) show. `Payload` is the machine side: the structured source object a
+pitcher carries along (a Kubernetes object, a webhook body, a scan result), for
+consumers that archive it or react to its fields instead of parsing display
+text.
+
+`Enqueue` stores `Payload` as a **nested JSON value** in the Redis JSON
+document, so it can be addressed by path (`JSON.GET <id> $.payload.spec`).
+`GetMessageJSON` and `json.Unmarshal` return it as it was set. It is optional
+and omitted when empty, so documents without it look as before. It is not part
+of any RediSearch index.
+
+#### `RawJSON`
+
+```go
+type RawJSON string
+```
+
+An encoded JSON value that is marshalled as is, like `json.RawMessage`. It is a
+string rather than a byte slice so `Message` stays comparable with `==`.
+
+#### `Message.SetPayload` / `MaxPayloadSize`
+
+```go
+const MaxPayloadSize = 256 * 1024
+
+func (m *Message) SetPayload(v any) error
+```
+
+Marshals `v` into `Payload`; `nil` clears it. It fails if `v` cannot be
+marshalled or the result exceeds `MaxPayloadSize`, and then leaves `Payload`
+unchanged. `Enqueue` rejects a `Payload` that is not valid JSON or too large
+before it writes anything.
+
+Every message stays in Redis until retention prunes it, so a payload is meant to
+be one object, not a dump. Strip noise such as `metadata.managedFields` of
+Kubernetes objects before setting it.
+
+```go
+msg := homerun.Message{Title: "Pod default/web: 2 findings", System: "k8sgpt"}
+if err := msg.SetPayload(result.Object); err != nil {
+    return err
+}
+```
+
+Over HTTP, post the `Message` marshalled with `json.Marshal`; homerun2-omni-pitcher
+decodes `/pitch` into a `Message` and keeps `payload`. The default template
+`HomeRunBodyData` of `SendToHomerun` does not carry it.
 
 ---
 
