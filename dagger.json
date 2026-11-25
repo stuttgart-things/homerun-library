@@ -7,8 +7,8 @@
   "dependencies": [
     {
       "name": "go-microservice",
-      "source": "github.com/stuttgart-things/blueprints/go-microservice@v1.20.0",
-      "pin": "54ed0af7415aa83607d790e16b800adb87198a40"
+      "source": "github.com/stuttgart-things/blueprints/go-microservice@v3.12.2",
+      "pin": "5b8afccc877cd1e8e2f2adf17f719c06848ba743"
     }
   ],
   "source": ".dagger",

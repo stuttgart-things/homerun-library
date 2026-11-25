@@ -109,6 +109,13 @@ func showLEDTemplates(readers []Component, deliveries []Delivery) {
 				continue
 			}
 			d.Text, d.TextRendered = profile.Rules[rule].Text, false
+			if d.Then != nil {
+				then := *d.Then
+				if k := slices.IndexFunc(profile.Rules, func(rule LEDRule) bool { return rule.Name == then.Name }); k >= 0 {
+					then.Text, then.TextRendered = profile.Rules[k].Text, false
+				}
+				d.Then = &then
+			}
 			reactions[j].Details, reactions[j].Summary = d, ledSummary(d)
 		}
 		deliveries[i].Reactions = reactions
