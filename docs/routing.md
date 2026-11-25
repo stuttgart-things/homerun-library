@@ -22,7 +22,7 @@ collects the Deployments and ConfigMaps and passes `Component`s in.
 | Catcher | Source | Parser | Matching |
 |---|---|---|---|
 | light-catcher | `profile.yaml` in ConfigMap `homerun2-light-catcher-profile` | `ParseLightProfile` | first effect in document order; `systems` exact or `*`; `severity` case-insensitive; every `tags` entry a whole element of the message tags |
-| led-catcher | `profile.yaml` in ConfigMap `homerun2-led-catcher-profile` | `ParseLEDProfile` | first rule in document order; `systems` case-insensitive or `*`; `severity` case-insensitive, empty matches any; missing system reads as `unknown`, missing severity as `info` |
+| led-catcher | `profile.yaml` in ConfigMap `homerun2-led-catcher-profile` | `ParseLEDProfile` | first rule in document order; `systems` case-insensitive or `*`; `severity` case-insensitive, empty matches any; every `tags` entry a whole element of the message tags; a rule whose `image` template renders empty is skipped; missing system reads as `unknown`, missing severity as `info`; an `overlay` rule carries the next match as `Then`; `quietHours` are not applied |
 | notification-catcher | `config.yaml` | `ParseNotificationConfig` | every output whose filters all match: `severity_min` by rank, `match` exact case-insensitive, `tags_contain` / `message_contains` any substring |
 | core-catcher, scout | — | `Profile: nil` | every message |
 
@@ -96,9 +96,21 @@ message that reaches nobody is visible as such. `Delivery.SharedWith` lists
 other catchers in the same consumer group on that stream: Redis hands each
 message to only one of them.
 
-For led-catcher, plain `{{ variable }}` text templates are rendered. Anything
-else — filters, expressions, statements — is returned as the raw template with
-`TextRendered: false` rather than half-rendered.
+For led-catcher, plain `{{ variable }}` and `{{ tag('name') }}` templates are
+rendered (text and image). Anything else — filters, expressions, statements —
+is returned as the raw template with `TextRendered: false` rather than
+half-rendered; an image template that cannot be rendered here is taken to
+match.
+
+led-catcher rule options in the result (`LEDDisplay`):
+
+- `overlay: true` — the display plays first, then the same message as the next
+  matching rule draws it (`Then`, one step, no chain). Summary:
+  `LED overlay static "…" … for 5s, then LED text "…" … scrolling`.
+- `ambient: true` (homerun2-led-catcher#161, the radio-pitcher's rule) — shown
+  only on a free panel, dropped when it is busy, cut short by any other
+  display; never held. The summary ends in
+  `ambient: only on a free panel, cut short by any other display`.
 
 ## Static matrix
 

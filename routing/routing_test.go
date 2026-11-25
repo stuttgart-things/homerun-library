@@ -180,6 +180,33 @@ func TestBuildMatrix_LEDTextTemplates(t *testing.T) {
 	}
 }
 
+// An overlay's follow-up is shown as its template in a cell, too.
+func TestBuildMatrix_LEDOverlayTemplates(t *testing.T) {
+	components := []Component{{Name: "led", Role: RoleCatcher, Streams: []string{"messages"}, ConsumerGroup: "led",
+		Profile: mustLED(t, `displayRules:
+  timer-end:
+    systems: [timer]
+    severity: [warning]
+    kind: static
+    text: "{{ title }}!"
+    overlay: true
+  timer:
+    systems: [timer]
+    kind: text
+    text: "{{ title }}"
+`)}}
+	m := BuildMatrix(components, "messages", nil)
+	cell, _ := m.Cell("timer", "warning")
+	d := delivery(t, cell.Deliveries, "led")
+	if len(d.Reactions) != 1 {
+		t.Fatalf("timer/warning: %+v", d)
+	}
+	want := `LED overlay static "{{ title }}!" in rgb(255,165,0) for 5s, then LED text "{{ title }}" in rgb(255,165,0) scrolling`
+	if got := d.Reactions[0].Summary; got != want {
+		t.Errorf("summary = %q, want %q", got, want)
+	}
+}
+
 func TestCheck(t *testing.T) {
 	components := test1(t)
 	components = append(components,
