@@ -1,3 +1,10 @@
+# [4.7.0](https://github.com/stuttgart-things/homerun-library/compare/v4.6.1...v4.7.0) (2026-11-25)
+
+
+### Features
+
+* **routing:** led-catcher ambient/overlay/tags and sound-catcher profile ([#150](https://github.com/stuttgart-things/homerun-library/issues/150)) ([4dc85de](https://github.com/stuttgart-things/homerun-library/commit/4dc85de326c32ae59bd561617c901621a36b2d05)), closes [#161](https://github.com/stuttgart-things/homerun-library/issues/161) [#148](https://github.com/stuttgart-things/homerun-library/issues/148) [#149](https://github.com/stuttgart-things/homerun-library/issues/149) [#146](https://github.com/stuttgart-things/homerun-library/issues/146) [#147](https://github.com/stuttgart-things/homerun-library/issues/147) [#147](https://github.com/stuttgart-things/homerun-library/issues/147)
+
 ## [4.6.1](https://github.com/stuttgart-things/homerun-library/compare/v4.6.0...v4.6.1) (2026-11-25)
 
 
