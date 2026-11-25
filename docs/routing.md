@@ -23,6 +23,7 @@ collects the Deployments and ConfigMaps and passes `Component`s in.
 |---|---|---|---|
 | light-catcher | `profile.yaml` in ConfigMap `homerun2-light-catcher-profile` | `ParseLightProfile` | first effect in document order; `systems` exact or `*`; `severity` case-insensitive; every `tags` entry a whole element of the message tags |
 | led-catcher | `profile.yaml` in ConfigMap `homerun2-led-catcher-profile` | `ParseLEDProfile` | first rule in document order; `systems` case-insensitive or `*`; `severity` case-insensitive, empty matches any; every `tags` entry a whole element of the message tags; a rule whose `image` template renders empty is skipped; missing system reads as `unknown`, missing severity as `info`; an `overlay` rule carries the next match as `Then`; `quietHours` are not applied |
+| sound-catcher | `profile.yaml` | `ParseSoundProfile` | first rule in document order; `systems` **exact (case-sensitive)**, `*` or empty matches any; `severity` case-insensitive, empty matches any; every `tags` entry a whole element of the message tags; `silent: true` matches and plays nothing; `quietHours` not applied, but `SoundAction.QuietHoursSilence` says whether they silence the message's severity |
 | notification-catcher | `config.yaml` | `ParseNotificationConfig` | every output whose filters all match: `severity_min` by rank, `match` exact case-insensitive, `tags_contain` / `message_contains` any substring |
 | core-catcher, scout | — | `Profile: nil` | every message |
 
@@ -42,7 +43,7 @@ type Reaction struct {
     Rule    string // effect, display rule or output
     Summary string // one line
     Problem string // why it will not happen as configured
-    Details any    // LightEffect, LEDDisplay or NotificationOutput
+    Details any    // LightEffect, LEDDisplay, SoundAction or NotificationOutput
 }
 ```
 
@@ -51,6 +52,9 @@ type Reaction struct {
 - light-catcher: unknown `color` or `fx`, or no `endpoint` — nothing is sent
 - led-catcher: a severity without a color renders white, the "unknown severity"
   color (led-catcher's defaults have no `critical`)
+- sound-catcher: a `say` template that uses a name sound-catcher does not
+  define (e.g. `{{ timestamp }}` or `{{ tag('x') }}`) fails under
+  `StrictUndefined`, so nothing is said — and nothing plays without a `sound`
 
 A notification-catcher output's URL and headers are **not kept**. Knowing where
 a message goes does not need the secret, and `${VAR}` references are not
