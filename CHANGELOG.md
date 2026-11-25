@@ -1,3 +1,25 @@
+## [4.7.1](https://github.com/stuttgart-things/homerun-library/compare/v4.7.0...v4.7.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/redis/go-redis/v9 to v9.24.0 ([#148](https://github.com/stuttgart-things/homerun-library/issues/148)) ([7126952](https://github.com/stuttgart-things/homerun-library/commit/7126952d0fdcf59b7fa5c8419bf7d86c84e922bb))
+* **deps:** update module go.yaml.in/yaml/v3 to v3.0.6 ([#140](https://github.com/stuttgart-things/homerun-library/issues/140)) ([03a8d5a](https://github.com/stuttgart-things/homerun-library/commit/03a8d5a6b740d843da81f6b4e4ddbdc11bd8cfac))
+
+# [4.7.0](https://github.com/stuttgart-things/homerun-library/compare/v4.6.1...v4.7.0) (2026-11-25)
+
+
+### Features
+
+* **routing:** led-catcher ambient/overlay/tags and sound-catcher profile ([#150](https://github.com/stuttgart-things/homerun-library/issues/150)) ([4dc85de](https://github.com/stuttgart-things/homerun-library/commit/4dc85de326c32ae59bd561617c901621a36b2d05)), closes [#161](https://github.com/stuttgart-things/homerun-library/issues/161) [#148](https://github.com/stuttgart-things/homerun-library/issues/148) [#149](https://github.com/stuttgart-things/homerun-library/issues/149) [#146](https://github.com/stuttgart-things/homerun-library/issues/146) [#147](https://github.com/stuttgart-things/homerun-library/issues/147) [#147](https://github.com/stuttgart-things/homerun-library/issues/147)
+
+## [4.6.1](https://github.com/stuttgart-things/homerun-library/compare/v4.6.0...v4.6.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/jedib0t/go-pretty/v6 to v6.9.3 ([#142](https://github.com/stuttgart-things/homerun-library/issues/142)) ([58b64e5](https://github.com/stuttgart-things/homerun-library/commit/58b64e572dc48ae9ffc4d10461bfc01f757ddd29))
+
 # [4.6.0](https://github.com/stuttgart-things/homerun-library/compare/v4.5.2...v4.6.0) (2026-11-13)
 
 

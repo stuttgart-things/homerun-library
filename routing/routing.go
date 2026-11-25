@@ -71,8 +71,8 @@ type Reaction struct {
 	// intends: a rule that matches an unknown effect, say, so nothing lights
 	// up at all.
 	Problem string `json:"problem,omitempty"`
-	// Details carries the schema-specific result: LightEffect, LEDDisplay or
-	// NotificationOutput.
+	// Details carries the schema-specific result: LightEffect, LEDDisplay,
+	// SoundAction or NotificationOutput.
 	Details any `json:"details,omitempty"`
 }
 
