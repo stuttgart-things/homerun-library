@@ -378,3 +378,158 @@ func TestLEDSummary(t *testing.T) {
 		}
 	}
 }
+
+// Cases below are ported from homerun2-led-catcher tests/test_profile.py
+// (templated image and overlay, #148) and the rule options of #161 (ambient)
+// and #125 (tags).
+
+func TestLEDEvaluate_ImageIsATemplateOverTheMessagesTags(t *testing.T) {
+	p := mustLED(t, "displayRules:\n  picture:\n    systems: [s]\n    kind: image\n    image: \"{{ tag('pic') }}\"\n")
+	d, _ := ledMatch(t, p, homerun.Message{Title: "t", System: "s", Tags: "a=1,pic=https://x.example/p.png,b=2"})
+	if d == nil || d.Image != "https://x.example/p.png" {
+		t.Errorf("got %+v", d)
+	}
+}
+
+func TestLEDEvaluate_RuleWhoseImageRendersEmptyDoesNotMatch(t *testing.T) {
+	p := mustLED(t, `displayRules:
+  picture:
+    systems: [s]
+    kind: image
+    image: "{{ tag('pic') }}"
+  words:
+    systems: [s]
+    kind: static
+    text: "{{ title }}"
+`)
+	d, _ := ledMatch(t, p, homerun.Message{Title: "no picture", System: "s", Tags: "a=1"})
+	if d == nil || d.Kind != "static" || d.Text != "no picture" {
+		t.Errorf("got %+v", d)
+	}
+}
+
+func TestLEDEvaluate_UnrenderableImageTemplateStillMatches(t *testing.T) {
+	// A filter is not rendered here, so whether led-catcher's rendering comes
+	// out empty is unknown: the rule is taken to match, as with text.
+	p := mustLED(t, "displayRules:\n  picture:\n    systems: [s]\n    kind: image\n    image: \"{{ tag('pic') | lower }}\"\n")
+	if d, _ := ledMatch(t, p, homerun.Message{System: "s"}); d == nil || d.Name != "picture" {
+		t.Errorf("got %+v", d)
+	}
+}
+
+func TestLEDEvaluate_PlainImageNameIsLeftAsItIs(t *testing.T) {
+	p := mustLED(t, "displayRules:\n  sunset:\n    systems: [s]\n    kind: gif\n    image: sunset.gif\n")
+	if d, _ := ledMatch(t, p, homerun.Message{Title: "t", System: "s"}); d == nil || d.Image != "sunset.gif" {
+		t.Errorf("got %+v", d)
+	}
+}
+
+func TestLEDEvaluate_OverlayCarriesTheNextMatchAndOnlyOne(t *testing.T) {
+	p := mustLED(t, `displayRules:
+  first:
+    systems: [s]
+    kind: static
+    text: one
+    overlay: true
+  second:
+    systems: [s]
+    kind: static
+    text: two
+    overlay: true
+  third:
+    systems: [s]
+    kind: static
+    text: three
+`)
+	d, r := ledMatch(t, p, homerun.Message{Title: "t", System: "s"})
+	if d == nil || d.Text != "one" || !d.Overlay {
+		t.Fatalf("got %+v", d)
+	}
+	if d.Then == nil || d.Then.Text != "two" {
+		t.Fatalf("then = %+v", d.Then)
+	}
+	if d.Then.Then != nil {
+		t.Error("an overlay's follow-up does not chain on")
+	}
+	want := `LED overlay static "one" in rgb(0,100,255) for 5s, then LED overlay static "two" in rgb(0,100,255) for 5s`
+	if r.Summary != want {
+		t.Errorf("summary = %q, want %q", r.Summary, want)
+	}
+}
+
+func TestLEDEvaluate_OverlayWithNothingAfterIt(t *testing.T) {
+	p := mustLED(t, "displayRules:\n  only:\n    systems: [s]\n    kind: gif\n    image: x.gif\n    overlay: true\n")
+	d, r := ledMatch(t, p, homerun.Message{System: "s"})
+	if d == nil || d.Then != nil || !strings.HasSuffix(r.Summary, "with nothing after it") {
+		t.Errorf("got %+v, summary %q", d, r.Summary)
+	}
+}
+
+func TestLEDEvaluate_Tags(t *testing.T) {
+	p := mustLED(t, `displayRules:
+  tagged:
+    systems: ["*"]
+    tags: [segment=news, 7]
+  rest:
+    systems: ["*"]
+`)
+	if got := p.Rules[0].Tags; len(got) != 2 || got[1] != "7" {
+		t.Errorf("tags = %v, want strings", got)
+	}
+	if d, _ := ledMatch(t, p, homerun.Message{System: "radio", Tags: " segment=news , 7"}); d == nil || d.Name != "tagged" {
+		t.Errorf("all tags present: got %+v", d)
+	}
+	if d, _ := ledMatch(t, p, homerun.Message{System: "radio", Tags: "segment=news"}); d == nil || d.Name != "rest" {
+		t.Errorf("a tag missing: got %+v", d)
+	}
+	if d, _ := ledMatch(t, p, homerun.Message{System: "radio", Tags: "segment=newsflash,7"}); d == nil || d.Name != "rest" {
+		t.Errorf("a tag is a whole element, not a substring: got %+v", d)
+	}
+}
+
+func TestLEDEvaluate_Ambient(t *testing.T) {
+	// The radio rule of homerun2-radio-pitcher (#146).
+	p := mustLED(t, `displayRules:
+  radio:
+    systems: [radio]
+    kind: static
+    text: "{{ title }}"
+    hold: true
+    ambient: yes
+`)
+	rule := p.Rules[0]
+	if !rule.Ambient || rule.Hold {
+		t.Fatalf("rule = %+v, want ambient and never held", rule)
+	}
+	d, r := ledMatch(t, p, homerun.Message{Title: "12:00", System: "radio", Severity: "INFO", Tags: "segment=time-check"})
+	if d == nil || !d.Ambient {
+		t.Fatalf("got %+v", d)
+	}
+	want := `LED static "12:00" in rgb(0,100,255) for 5s, ambient: only on a free panel, cut short by any other display`
+	if r.Summary != want {
+		t.Errorf("summary = %q, want %q", r.Summary, want)
+	}
+}
+
+func TestParseLEDProfile_RejectsNullTags(t *testing.T) {
+	if _, err := ParseLEDProfile([]byte("displayRules:\n  r:\n    systems: [s]\n    tags:\n")); err == nil {
+		t.Error("led-catcher iterates tags, so null fails there")
+	}
+}
+
+func TestRenderLEDText_TagAndTimestamp(t *testing.T) {
+	msg := homerun.Message{Tags: "until=2026-11-25T12:00:00Z, timer=abc", Timestamp: "2026-11-25T11:56:00Z"}
+	cases := []struct {
+		text, want string
+	}{
+		{"{{ tag('until') }}", "2026-11-25T12:00:00Z"},
+		{`{{ tag("timer") }}`, "abc"},
+		{"{{ tag('missing') }}x", "x"},
+		{"{{ timestamp }}", "2026-11-25T11:56:00Z"},
+	}
+	for _, tc := range cases {
+		if got, ok := renderLEDText(tc.text, msg); got != tc.want || !ok {
+			t.Errorf("renderLEDText(%q) = %q, %v; want %q", tc.text, got, ok, tc.want)
+		}
+	}
+}

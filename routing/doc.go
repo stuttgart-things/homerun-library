@@ -17,11 +17,11 @@ Copyright © 2026 Patrick Hermann patrick.hermann@sva.de
 //     stream no catcher reads still reports success.
 //  3. What a catcher does with it. That is decided by its profile, and every
 //     catcher has its own schema: light-catcher's effects, led-catcher's
-//     displayRules and notification-catcher's outputs.
+//     displayRules, sound-catcher's rules and notification-catcher's outputs.
 //
 // The package parses each profile schema into a Profile and evaluates it with
 // the same rules the catcher applies (see ParseLightProfile,
-// ParseLEDProfile, ParseNotificationConfig). On top of that:
+// ParseLEDProfile, ParseSoundProfile, ParseNotificationConfig). On top of that:
 //
 //   - DryRun: what every catcher does with one message published to a stream.
 //   - BuildMatrix: severity × system → which catcher reacts how.
@@ -40,6 +40,6 @@ Copyright © 2026 Patrick Hermann patrick.hermann@sva.de
 // PreparePitch mirror omni-pitcher's, named in their doc comments. A change to
 // how a service matches has to be made here as well, or the dry run will
 // confidently describe behaviour the service no longer has. The Go services
-// can import this code instead of keeping their own copy; led-catcher is
-// Python, so its tests are the reference.
+// can import this code instead of keeping their own copy; led-catcher and
+// sound-catcher are Python, so their tests are the reference.
 package routing
